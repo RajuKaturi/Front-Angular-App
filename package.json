@@ -1,5 +1,5 @@
 {
-  "name": "ifgather server",
+  "name": "ifgather",
   "version": "0.0.0",
   "private": true,
   "scripts": {
