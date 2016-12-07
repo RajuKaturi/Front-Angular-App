@@ -9,10 +9,10 @@ router.post('/addLead',function(req, res){
     if(Object.keys(req.body).length === 0 ){
         res.json({"Message" : "Sorry Buddy, Please send some data!"});
     } else {
-        userinst.firstname = req.body.firstName;
-        userinst.lastname = req.body.lastName;
+        userinst.firstName = req.body.firstName;
+        userinst.lastName = req.body.lastName;
         userinst.email = req.body.email;
-        userinst.islocalleader = req.body.isLocalLeader;
+        userinst.isLocalLeader = req.body.isLocalLeader;
 
         userinst.save({},function(err){
             if(err){
