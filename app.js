@@ -36,7 +36,6 @@ app.post('/recurly', function (req, res) {
 
   var paymentData = req.body;
 
-  var amount = 6000;
     if(paymentData.monthlyGiving) {
 
         var sub_url = "https://kids-discover-test.recurly.com/v2/subscriptions";
