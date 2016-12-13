@@ -40,7 +40,7 @@ app.use(function(req, res, next) {
   next(err);
 });
 app.use(function(req, res, next) {
-  res.Header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type,X-Requested-With,X-Auth-Token');
   res.header('Access-Control-Allow-Methods', 'GET','POST','DELETE,PUT','OPTIONS');
   next();
