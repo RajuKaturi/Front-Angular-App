@@ -9,16 +9,16 @@ var encodedData = base64.encode('7a4a27967d674d6885923933bcef12fd');
 /* GET api home page. */
 // API to add user
 router.post('/addLead',function(req, res){
-    var userinst = new User();
+    var userInst = new User();
     if(Object.keys(req.body).length === 0 ){
         res.json({"Message" : "Sorry Buddy, Please send some data!"});
     } else {
-        userinst.firstName = req.body.firstName;
-        userinst.lastName = req.body.lastName;
-        userinst.email = req.body.email;
-        userinst.isLocalLeader = req.body.isLocalLeader;
+        userInst.firstName = req.body.firstName;
+        userInst.lastName = req.body.lastName;
+        userInst.email = req.body.email;
+        userInst.isLocalLeader = req.body.isLocalLeader;
 
-        userinst.save({},function(err){
+        userInst.save({},function(err){
             if(err){
                 res.send(err);
             }
@@ -31,7 +31,7 @@ router.post('/addLead',function(req, res){
 });
 
 // APi for recurly credit card payment
-router.post('/recurly', function (req, res) {
+router.post('/creditcard', function (req, res) {
 
     if(Object.keys(req.body).length === 0 ){
 
@@ -191,7 +191,7 @@ router.post('/ach', function (req, res) {
 });
 
 
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
     res.send('responded');
 });
 
