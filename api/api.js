@@ -85,10 +85,10 @@ router.post('/creditcard', function (req, res) {
                 "<account><account_code>"+paymentData.emailId+"</account_code><first_name>"+paymentData.firstName+"</first_name>" +
                 "<last_name>"+paymentData.lastName+"</last_name><email>"+paymentData.emailId+"</email>" +
                 "<company_name>ifgathering</company_name>" +
-                "<address><address1>"+paymentData.addressOne+"</address1><address2 nil='nil'/><city>"+paymentData.city+"</city><state>paymentData.StateCode</state><zip>"+paymentData.zipCode+"</zip><country>"+paymentData.countryList+"</country>" +
+                "<address><address1>"+paymentData.addressOne+"</address1><address2 nil='nil'/><city>"+paymentData.city+"</city><state>"+paymentData.StateCode+"</state><zip>"+paymentData.zipCode+"</zip><country>"+paymentData.countryList+"</country>" +
                 "<phone nil='nil'/></address>"+
                 "<billing_info type='credit_card'><first_name>"+paymentData.firstName+"</first_name>" +
-                "<last_name>"+paymentData.lastName+"</last_name><address1>"+paymentData.addressOne+"</address1><address2 nil='nil'/><city>"+paymentData.city+"</city><state>paymentData.StateCode</state>" +
+                "<last_name>"+paymentData.lastName+"</last_name><address1>"+paymentData.addressOne+"</address1><address2 nil='nil'/><city>"+paymentData.city+"</city><state>"+paymentData.StateCode+"</state>" +
                 "<zip>"+paymentData.zipCode+"</zip><country>"+paymentData.countryList+"</country><phone nil='nil'/><vat_number nil='nil'/><year type='integer'>"+paymentData.CCYear+"</year>" +
                 "<month type='integer'>"+paymentData.CCMonth+"</month><number>"+paymentData.CCNumber+"</number></billing_info></account></transaction>";
             var url = "https://kids-discover-test.recurly.com/v2/transactions";
@@ -132,7 +132,7 @@ router.post('/ach', function (req, res) {
                 "<company_name>ifgathering</company_name>" +
                 "<address><address1>" + paymentDataACH.addressOne + "</address1><address2 nil='nil'/><city>" + paymentDataACH.city + "</city><state>"+paymentDataACH.StateCode+"</state><zip>" + paymentDataACH.zipCode + "</zip><country>"+paymentData.countryList+"</country>" +
                 "<phone nil='nil'/></address>" +
-                "<billing_info type='credit_card'><address1>" + paymentDataACH.addressOne + "</address1><address2 nil='nil'/><city>" + paymentDataACH.city + "</city><state>paymentDataACH.StateCode</state><zip>" + paymentDataACH.zipCode + "</zip>" +
+                "<billing_info type='credit_card'><address1>" + paymentDataACH.addressOne + "</address1><address2 nil='nil'/><city>" + paymentDataACH.city + "</city><state>"+paymentDataACH.StateCode+"</state><zip>" + paymentDataACH.zipCode + "</zip>" +
                 "<country>"+paymentDataACH.countryList+"</country><phone nil='nil'/><vat_number nil='nil'/><name_on_account>" + paymentDataACH.accountName + "</name_on_account><account_type>" + paymentDataACH.accountType + "</account_type>" +
                 "<account_number>" + paymentDataACH.accountNumber + "</account_number><company>OLIVE</company><routing_number type='integer'>" + paymentDataACH.routingNumber + "</routing_number></billing_info></account></subscription>";
             var sub_url = "https://kids-discover-test.recurly.com/v2/subscriptions";
