@@ -1,0 +1,16 @@
+{
+  "mongodb" : {
+
+    "url": "iad2-c4-2.mongo.objectrocket.com:52208",
+    "db": "ifg_users",
+    "username": "devteamolive",
+    "password": "Olive&devs08",
+    "collection": ""
+  },
+  "recurly": {
+    "API_KEY": "",
+    "transactionURL": "",
+    "subscriptionURL": ""
+  }
+
+}

@@ -1,18 +1,14 @@
-var mongoose = require('mongoose');
+"use strict"
 
-//Username:devteamolive
-//Password:Olive&devs08
-//Database:ifg_users
-//Mongo url:iad2-c4-2.mongo.objectrocket.com:52208
-//Collection: ifgusers
-var db = mongoose.createConnection('mongodb://devteamolive:Olive&devs08@iad2-c4-2.mongo.objectrocket.com:52208/ifg_users');
+let mongoose = require('mongoose');
+let config = require('../config/config.json');
+let db = mongoose.createConnection('mongodb://'+config.mongodb.username+':'+config.mongodb.password+'@'+config.mongodb.url+'/'+config.mongodb.db);
 
-var userSchema = new mongoose.Schema({
+let userSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     email: String,
     isLocalLeader: Boolean
 });
-
 
 module.exports = db.model('ifgusers', userSchema);

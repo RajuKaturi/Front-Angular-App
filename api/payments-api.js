@@ -1,45 +1,19 @@
-var express = require('express');
-var router = express.Router();
-var User = require('../models/user');
+const express = require('express');
+const router = express.Router();
+const User = require('../models/user');
 
-var request = require('request');
-var base64  = require('base-64');
-var encodedData = base64.encode('7a4a27967d674d6885923933bcef12fd');
-
-/* GET api home page. */
-// API to add user
-router.post('/addLead',function(req, res){
-    var userInst = new User();
-    if(Object.keys(req.body).length === 0 ){
-        res.json({"Message" : "Sorry Buddy, Please send some data!"});
-    } else {
-        userInst.firstName = req.body.firstName;
-        userInst.lastName = req.body.lastName;
-        userInst.email = req.body.email;
-        userInst.isLocalLeader = req.body.isLocalLeader;
-
-        userInst.save({},function(err){
-            if(err){
-                res.send(err);
-            }
-            res.json({
-                message: 'Leads added succesfully!', data: userinst
-            });
-        });
-
-    }
-});
+const request = require('request');
+const base64  = require('base-64');
+const encodedData = base64.encode('7a4a27967d674d6885923933bcef12fd');
 
 // APi for recurly credit card payment
 router.post('/creditcard', function (req, res) {
 
     if(Object.keys(req.body).length === 0 ){
-        res.json({"Message" : "Sorry Buddy, Please send some data!"});
+        res.status(422).json({"Message" : "Sorry, Please send some data!"});
     } else {
         var paymentData = req.body;
-
         if(paymentData.monthlyGiving) {
-            console.log('in credit card monthly');
             var sub_url = "https://kids-discover-test.recurly.com/v2/subscriptions";
             var sub_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='credit_card'>" +
                 "<plan_code>ifgmonthlysb</plan_code>" +
@@ -118,7 +92,7 @@ router.post('/creditcard', function (req, res) {
 router.post('/ach', function (req, res) {
 
     if(Object.keys(req.body).length === 0 ){
-        res.json({"Message" : "Sorry Buddy, Please send some data!"});
+        res.status(422).json({"Message" : "Sorry, Please send some data!"});
     } else {
         var paymentDataACH = req.body;
 
