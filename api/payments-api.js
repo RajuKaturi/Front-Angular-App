@@ -1,8 +1,8 @@
 "use strict"
 
-let environment = process.env.NODE_ENV || 'development' ;
+let environment = process.env.NODE_ENV || 'development';
 
-if(environment === 'development'){
+if (environment === 'development') {
     var config = require('../config/development.json');
 }
 
@@ -21,7 +21,7 @@ router.post('/creditcard', function (req, res) {
     } else {
         let paymentData = req.body;
         if (paymentData.monthlyGiving) {
-            let subscription_url = config.recurly.subscriptionURL; //"https://kids-discover-test.recurly.com/v2/subscriptions";
+            let subscription_url = config.recurly.subscriptionURL;
             let subscription_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='credit_card'>" +
                 "<plan_code>ifgmonthlysb</plan_code>" +
                 "<unit_amount_in_cents type='integer'>" + paymentData.amount + "</unit_amount_in_cents>" +
@@ -48,9 +48,13 @@ router.post('/creditcard', function (req, res) {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: subscription_url, body: subscription_body, headers: subscription_headers}, function (recrulyErr, response, body) {
-                if (recrulyErr) {
-                    return recrulyErr;
+            request.post({
+                url: subscription_url,
+                body: subscription_body,
+                headers: subscription_headers
+            }, function (recurlyErr, response, body) {
+                if (recurlyErr) {
+                    return recurlyErr;
                 } else {
                     if (response.statusCode === 201) {
                         return res.json({'msg': 'success'});
@@ -72,14 +76,14 @@ router.post('/creditcard', function (req, res) {
                 "<last_name>" + paymentData.lastName + "</last_name><address1>" + paymentData.addressOne + "</address1><address2 nil='nil'/><city>" + paymentData.city + "</city><state>" + paymentData.StateCode + "</state>" +
                 "<zip>" + paymentData.zipCode + "</zip><country>" + paymentData.countryList + "</country><phone nil='nil'/><vat_number nil='nil'/><year type='integer'>" + paymentData.CCYear + "</year>" +
                 "<month type='integer'>" + paymentData.CCMonth + "</month><number>" + paymentData.CCNumber + "</number></billing_info></account></transaction>";
-            let url = "https://kids-discover-test.recurly.com/v2/transactions";
+            let url = config.recurly.transactionURL;
             let headers = {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: url, body: body, headers: headers}, function (recrulyErr, response, body) {
-                if (recrulyErr) {
-                    return response.json(recrulyErr);
+            request.post({url: url, body: body, headers: headers}, function (recurlyErr, response, body) {
+                if (recurlyErr) {
+                    return response.json(recurlyErr);
                 } else {
                     if (response.statusCode === 201) {
                         return res.json({'msg': 'success'});
@@ -104,7 +108,7 @@ router.post('/ach', function (req, res) {
         let paymentDataACH = req.body;
 
         if (paymentDataACH.monthlyGiving) {
-            let sub_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='bank_account'>" +
+            let subscription_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='bank_account'>" +
                 "<plan_code>ifgmonthlysb</plan_code>" +
                 "<unit_amount_in_cents type='integer'>" + paymentDataACH.amount + "</unit_amount_in_cents>" +
                 "<currency>USD</currency>" +
@@ -116,14 +120,18 @@ router.post('/ach', function (req, res) {
                 "<billing_info type='credit_card'><address1>" + paymentDataACH.addressOne + "</address1><address2 nil='nil'/><city>" + paymentDataACH.city + "</city><state>" + paymentDataACH.StateCode + "</state><zip>" + paymentDataACH.zipCode + "</zip>" +
                 "<country>" + paymentDataACH.countryList + "</country><phone nil='nil'/><vat_number nil='nil'/><name_on_account>" + paymentDataACH.accountName + "</name_on_account><account_type>" + paymentDataACH.accountType + "</account_type>" +
                 "<account_number>" + paymentDataACH.accountNumber + "</account_number><company>OLIVE</company><routing_number type='integer'>" + paymentDataACH.routingNumber + "</routing_number></billing_info></account></subscription>";
-            let sub_url = "https://kids-discover-test.recurly.com/v2/subscriptions";
-            var sub_headers = {
+            let subscription_url = config.recurly.subscriptionURL;
+            var subscription_headers = {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: sub_url, body: sub_body, headers: sub_headers}, function (error, response, body) {
-                if (error) {
-                    return error;
+            request.post({
+                url: subscription_url,
+                body: subscription_body,
+                headers: subscription_headers
+            }, function (recurlyErr, response, body) {
+                if (recurlyErr) {
+                    return recurlyErr;
                 } else {
                     if (response.statusCode === 201) {
                         return res.json({'msg': 'success'});
@@ -148,14 +156,14 @@ router.post('/ach', function (req, res) {
                 "<billing_info type='bank_account'><address1>" + paymentDataACH.addressOne + "</address1><address2 nil='nil'/><city>" + paymentDataACH.city + "</city><state>" + paymentDataACH.StateCode + "</state><zip>" + paymentDataACH.zipCode + "</zip>" +
                 "<country>" + paymentDataACH.countryList + "</country><phone nil='nil'/><vat_number nil='nil'/><name_on_account>" + paymentDataACH.accountName + "</name_on_account><account_type>" + paymentDataACH.accountType + "</account_type>" +
                 "<account_number>" + paymentDataACH.accountNumber + "</account_number><company>OLIVE</company><routing_number type='integer'>" + paymentDataACH.routingNumber + "</routing_number></billing_info></account></transaction>";
-            let url = "https://kids-discover-test.recurly.com/v2/transactions";
+            let url = config.recurly.transactionURL;
             let headers = {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: url, body: body, headers: headers}, function (error, response, body) {
-                if (error) {
-                    return error;
+            request.post({url: url, body: body, headers: headers}, function (recurlyErr, response, body) {
+                if (recurlyErr) {
+                    return recurlyErr;
                 } else {
                     if (response.statusCode === 201) {
                         return res.json({'msg': 'success'});
@@ -168,9 +176,5 @@ router.post('/ach', function (req, res) {
     }
 });
 
-
-router.get('/', function (req, res) {
-    res.send('responded');
-});
 
 module.exports = router;

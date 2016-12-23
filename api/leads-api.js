@@ -27,16 +27,16 @@ router.post('/lead', (req, res) => {
     user.save({}, function (err) {
         if (err) {
             res
-              .status(500)
-              .json({
-                  error: err
-              });
+                .status(500)
+                .json({
+                    error: err
+                });
         }
         res
-          .status(200)
-          .json({
-            message: 'Leads added succesfully!', data: user
-        });
+            .status(200)
+            .json({
+                message: 'Leads added succesfully!', data: user
+            });
     });
 
 });

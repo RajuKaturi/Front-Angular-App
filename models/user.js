@@ -23,7 +23,7 @@ function save() {
         let userDb = new db.UserDb(this);
 
         userDb.save((err) => {
-            if(err) {
+            if (err) {
                 return reject(err);
             }
 
