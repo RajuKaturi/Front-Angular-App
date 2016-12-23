@@ -1,23 +1,28 @@
 "use strict"
 
+let environment = process.env.NODE_ENV || 'development' ;
+
+if(environment === 'development'){
+    var config = require('../config/development.json');
+}
+
 const express = require('express');
 const router = express.Router();
-const User = require('../models/user');
-
 const request = require('request');
 const base64 = require('base-64');
-const encodedData = base64.encode('7a4a27967d674d6885923933bcef12fd');
+const encodedKey = base64.encode(config.recurly.API_KEY);
+
 
 // APi for recurly credit card payment
 router.post('/creditcard', function (req, res) {
 
     if (Object.keys(req.body).length === 0) {
-        res.status(422).json({"Message": "Sorry, Please send some data!"});
+        res.status(422).json({"Message": "INVALID BODY"});
     } else {
         let paymentData = req.body;
         if (paymentData.monthlyGiving) {
-            let sub_url = "https://kids-discover-test.recurly.com/v2/subscriptions";
-            let sub_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='credit_card'>" +
+            let subscription_url = config.recurly.subscriptionURL; //"https://kids-discover-test.recurly.com/v2/subscriptions";
+            let subscription_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='credit_card'>" +
                 "<plan_code>ifgmonthlysb</plan_code>" +
                 "<unit_amount_in_cents type='integer'>" + paymentData.amount + "</unit_amount_in_cents>" +
                 "<currency>USD</currency>" +
@@ -39,13 +44,13 @@ router.post('/creditcard', function (req, res) {
                 "<verification_value>" + paymentData.CVV + "</verification_value></billing_info>" +
                 "</account>" +
                 "</subscription>";
-            let sub_headers = {
+            let subscription_headers = {
                 'Accept': 'application/xml',
-                'Authorization': 'Basic ' + encodedData
+                'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: sub_url, body: sub_body, headers: sub_headers}, function (error, response, body) {
-                if (error) {
-                    return error;
+            request.post({url: subscription_url, body: subscription_body, headers: subscription_headers}, function (recrulyErr, response, body) {
+                if (recrulyErr) {
+                    return recrulyErr;
                 } else {
                     if (response.statusCode === 201) {
                         return res.json({'msg': 'success'});
@@ -70,11 +75,11 @@ router.post('/creditcard', function (req, res) {
             let url = "https://kids-discover-test.recurly.com/v2/transactions";
             let headers = {
                 'Accept': 'application/xml',
-                'Authorization': 'Basic ' + encodedData
+                'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: url, body: body, headers: headers}, function (error, response, body) {
-                if (error) {
-                    return response.json(error);
+            request.post({url: url, body: body, headers: headers}, function (recrulyErr, response, body) {
+                if (recrulyErr) {
+                    return response.json(recrulyErr);
                 } else {
                     if (response.statusCode === 201) {
                         return res.json({'msg': 'success'});
@@ -94,7 +99,7 @@ router.post('/creditcard', function (req, res) {
 router.post('/ach', function (req, res) {
 
     if (Object.keys(req.body).length === 0) {
-        res.status(422).json({"Message": "Sorry, Please send some data!"});
+        res.status(422).json({"Message": "INVALID BODY"});
     } else {
         let paymentDataACH = req.body;
 
@@ -114,7 +119,7 @@ router.post('/ach', function (req, res) {
             let sub_url = "https://kids-discover-test.recurly.com/v2/subscriptions";
             var sub_headers = {
                 'Accept': 'application/xml',
-                'Authorization': 'Basic ' + encodedData
+                'Authorization': 'Basic ' + encodedKey
             };
             request.post({url: sub_url, body: sub_body, headers: sub_headers}, function (error, response, body) {
                 if (error) {
@@ -146,7 +151,7 @@ router.post('/ach', function (req, res) {
             let url = "https://kids-discover-test.recurly.com/v2/transactions";
             let headers = {
                 'Accept': 'application/xml',
-                'Authorization': 'Basic ' + encodedData
+                'Authorization': 'Basic ' + encodedKey
             };
             request.post({url: url, body: body, headers: headers}, function (error, response, body) {
                 if (error) {

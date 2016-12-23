@@ -1,0 +1,14 @@
+{
+    "mongodb": {
+      "url": "",
+      "db": "",
+      "username": "",
+      "password": "",
+      "collection": ""
+    },
+    "recurly": {
+      "API_KEY": "",
+      "transactionURL": "",
+      "subscriptionURL": ""
+    }
+}

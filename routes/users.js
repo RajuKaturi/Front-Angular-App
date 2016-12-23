@@ -1,11 +1,11 @@
-var express = require('express');
-var router = express.Router();
+let express = require('express');
+let router = express.Router();
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+  res.status(422).json({"Message": "INVALID API"});
 });
 router.get('/api', function(req, res, next) {
-  res.send('respond with a resource api');
+  res.status(422).json({"Message": "INVALID API"});
 });
 module.exports = router;

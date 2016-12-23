@@ -1,14 +1,33 @@
 "use strict"
 
-let mongoose = require('mongoose');
-let config = require('../config/config.json');
-let db = mongoose.createConnection('mongodb://'+config.mongodb.username+':'+config.mongodb.password+'@'+config.mongodb.url+'/'+config.mongodb.db);
+const MongoDb = require('../access/mongo');
 
-let userSchema = new mongoose.Schema({
-    firstName: String,
-    lastName: String,
-    email: String,
-    isLocalLeader: Boolean
-});
+module.exports = User;
 
-module.exports = db.model('ifgusers', userSchema);
+function User(init) {
+
+    this.firstName = init.firstName || '';
+    this.lastName = init.lastName || '';
+    this.email = init.email || '';
+    this.isLocalLeader = init.isLocalLeader || '';
+    this.pushToActOn = init.pushToActOn || '';
+    this.pushToSalesForce = init.pushToSalesForce || '';
+}
+
+User.prototype.save = save;
+
+function save() {
+
+    return new Promise((resolve, reject) => {
+        let db = new MongoDb();
+        let userDb = new db.UserDb(this);
+
+        userDb.save((err) => {
+            if(err) {
+                return reject(err);
+            }
+
+            resolve(this);
+        });
+    });
+}
