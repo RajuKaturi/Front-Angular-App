@@ -1,10 +1,10 @@
 {
   "mongodb": {
-    "url": "iad2-c4-1.mongo.objectrocket.com:52208,iad2-c4-0.mongo.objectrocket.com:52208,iad2-c4-2.mongo.objectrocket.com:52208",
-    "db": "ifg_users",
-    "username": "devteamolive",
-    "password": "Olive&devs08",
-    "collection": "ifg_leads"
+    "url": "localhost:27017",
+    "db": "ifgather",
+    "username": "gowtham",
+    "password": "gowtham",
+    "collection": "users"
   },
   "recurly": {
     "API_KEY": "7a4a27967d674d6885923933bcef12fd",

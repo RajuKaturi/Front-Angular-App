@@ -1,33 +1,24 @@
 "use strict"
 
-const MongoDb = require('../access/mongo');
+let mongoose = require('mongoose');
+let conn = require('../access/mongo');
 
-module.exports = User;
+let userSchema = mongoose.Schema ({
+                    firstName: { type: String, required: true},
+                    lastName: { type: String, required: true},
+                    email: { type: String, required: true},
+                    isLocalLeader: Boolean,
+                    pushToActOn: Boolean,
+                    pushToSalesForce: Boolean
 
-function User(init) {
+                 });
 
-    this.firstName = init.firstName || '';
-    this.lastName = init.lastName || '';
-    this.email = init.email || '';
-    this.isLocalLeader = init.isLocalLeader || '';
-    this.pushToActOn = init.pushToActOn || '';
-    this.pushToSalesForce = init.pushToSalesForce || '';
-}
+// Add custom methods
 
-User.prototype.save = save;
 
-function save() {
+// generate model
+const userModel = conn.model('ifg_leads', userSchema);
 
-    return new Promise((resolve, reject) => {
-        let db = new MongoDb();
-        let userDb = new db.UserDb(this);
 
-        userDb.save((err) => {
-            if (err) {
-                return reject(err);
-            }
-
-            resolve(this);
-        });
-    });
-}
+//export model
+module.exports = userModel;

@@ -4,7 +4,6 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
 
-
 /* GET api home page. */
 // API to add user
 router.post('/lead', (req, res) => {
@@ -17,27 +16,28 @@ router.post('/lead', (req, res) => {
             });
     }
 
-    let user = new User();
+    let user = new User({
+        firstName: req.body.firstName || '',
+        lastName: req.body.lastName   || '',
+        email: req.body.email || '',
+        isLocalLeader: req.body.isLocalLeader || '',
+        pushToActOn: req.body.pushToActOn || false,
+        pushToSalesForce: req.body.pushToSalesForce || false
 
-    user.firstName = req.body.firstName;
-    user.lastName = req.body.lastName;
-    user.email = req.body.email;
-    user.isLocalLeader = req.body.isLocalLeader;
-
-    user.save({}, function (err) {
-        if (err) {
-            res
-                .status(500)
-                .json({
-                    error: err
-                });
-        }
-        res
-            .status(200)
-            .json({
-                message: 'Leads added succesfully!', data: user
-            });
     });
+
+    user
+        .save()
+        .then(
+            (lead) => {
+                res.status(200).json({
+                    "Message": "Leads added succesfully"
+                })},
+            (error) => {
+                res.send(error);
+
+            }
+        );
 
 });
 
