@@ -1,4 +1,4 @@
-"use strict"
+'use strict';
 
 let mongoose = require('mongoose');
 let conn = require('../access/mongo');

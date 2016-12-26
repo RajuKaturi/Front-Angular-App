@@ -17,47 +17,65 @@ const encodedKey = base64.encode(config.recurly.API_KEY);
 router.post('/creditcard', function (req, res) {
 
     if (Object.keys(req.body).length === 0) {
-        res.status(422).json({"Message": "INVALID BODY"});
+        res.status(422).json({'Message': 'INVALID BODY'});
     } else {
         let paymentData = req.body;
         if (paymentData.monthlyGiving) {
-            let subscription_url = config.recurly.subscriptionURL;
-            let subscription_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='credit_card'>" +
+            let url = config.recurly.subscriptionURL;
+            let body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='credit_card'>" +
                 "<plan_code>ifgmonthlysb</plan_code>" +
                 "<unit_amount_in_cents type='integer'>" + paymentData.amount + "</unit_amount_in_cents>" +
                 "<currency>USD</currency>" +
-                "<account>" +
-                "<account_code>" + paymentData.emailId + "</account_code>" +
-                "<first_name>" + paymentData.firstName + "</first_name>" +
-                "<last_name>" + paymentData.lastName + "</last_name>" +
-                "<email>" + paymentData.emailId + "</email>" +
-                "<company_name>ifgathering</company_name>" +
-                "<address><address1>" + paymentData.addressOne + "</address1><address2 nil='nil'/><city>" + paymentData.city + "</city><state>" + paymentData.StateCode + "</state><zip>" + paymentData.zipCode + "</zip><country>" + paymentData.countryList + "</country>" +
-                "<phone nil='nil'/></address>" +
-                "<billing_info type='credit_card'><first_name>" + paymentData.firstName + "</first_name><last_name>" + paymentData.lastName + "</last_name><address1>" + paymentData.addressOne + "</address1>" +
-                "<address2 nil='nil'/><city>" + paymentData.city + "</city><state>" + paymentData.StateCode + "</state>" +
-                "<zip>" + paymentData.zipCode + "</zip><country>" + paymentData.countryList + "</country>" +
-                "<phone nil='nil'/>" +
-                "<vat_number nil='nil'/>" +
-                "<number>" + paymentData.CCNumber + "</number>" +
-                "<year type='integer'>" + paymentData.CCYear + "</year><month type='integer'>" + paymentData.CCMonth + "</month>" +
-                "<verification_value>" + paymentData.CVV + "</verification_value></billing_info>" +
-                "</account>" +
+                    "<account>" +
+                        "<account_code>" + paymentData.emailId + "</account_code>" +
+                        "<first_name>" + paymentData.firstName + "</first_name>" +
+                        "<last_name>" + paymentData.lastName + "</last_name>" +
+                        "<email>" + paymentData.emailId + "</email>" +
+                        "<company_name>ifgathering</company_name>" +
+                        "<address>" +
+                            "<address1>" + paymentData.addressOne + "</address1>" +
+                            "<address2 nil='nil'/>" +
+                            "<city>" + paymentData.city + "</city>" +
+                            "<state>" + paymentData.StateCode + "</state>" +
+                            "<zip>" + paymentData.zipCode + "</zip>" +
+                            "<country>" + paymentData.countryList + "</country>" +
+                            "<phone nil='nil'/>" +
+                        "</address>" +
+                        "<billing_info type='credit_card'>" +
+                            "<first_name>" + paymentData.firstName + "</first_name>" +
+                            "<last_name>" + paymentData.lastName + "</last_name>" +
+                            "<address1>" + paymentData.addressOne + "</address1>" +
+                            "<address2 nil='nil'/>" +
+                            "<city>" + paymentData.city + "</city>" +
+                            "<state>" + paymentData.StateCode + "</state>" +
+                            "<zip>" + paymentData.zipCode + "</zip>" +
+                            "<country>" + paymentData.countryList + "</country>" +
+                            "<phone nil='nil'/>" +
+                            "<vat_number nil='nil'/>" +
+                            "<number>" + paymentData.CCNumber + "</number>" +
+                            "<year type='integer'>" + paymentData.CCYear + "</year>" +
+                            "<month type='integer'>" + paymentData.CCMonth + "</month>" +
+                            "<verification_value>" + paymentData.CVV + "</verification_value>" +
+                        "</billing_info>" +
+                    "</account>" +
                 "</subscription>";
-            let subscription_headers = {
+            let headers = {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
             request.post({
-                url: subscription_url,
-                body: subscription_body,
-                headers: subscription_headers
+                url: url,
+                body: body,
+                headers: headers
             }, function (recurlyErr, response, body) {
                 if (recurlyErr) {
-                    return recurlyErr;
+                    console.log(recurlyErr); // ideally this should actually be logging using winston or something
+                    return res
+                            .send(500)
+                            .json({error: 'RECURLY_MONTHLY_GIVING_ERROR'});
                 } else {
                     if (response.statusCode === 201) {
-                        return res.json({'msg': 'success'});
+                        return res.json({'Message': 'success'});
                     } else {
                         return res.json({'status_code': response.statusCode, 'body': response.body});
                     }
@@ -65,28 +83,60 @@ router.post('/creditcard', function (req, res) {
             });
         } else {
             let body = "<transaction href='https://kids-discover-test.recurly.com/v2/transactions'>" +
-                "<account href='https://kids-discover-test.recurly.com/v2/accounts/" + paymentData.emailId + "'/><amount_in_cents type='integer'>" + paymentData.amount + "</amount_in_cents><currency>USD</currency>" +
-                "<payment_method>credit_card</payment_method>" +
-                "<account><account_code>" + paymentData.emailId + "</account_code><first_name>" + paymentData.firstName + "</first_name>" +
-                "<last_name>" + paymentData.lastName + "</last_name><email>" + paymentData.emailId + "</email>" +
-                "<company_name>ifgathering</company_name>" +
-                "<address><address1>" + paymentData.addressOne + "</address1><address2 nil='nil'/><city>" + paymentData.city + "</city><state>" + paymentData.StateCode + "</state><zip>" + paymentData.zipCode + "</zip><country>" + paymentData.countryList + "</country>" +
-                "<phone nil='nil'/></address>" +
-                "<billing_info type='credit_card'><first_name>" + paymentData.firstName + "</first_name>" +
-                "<last_name>" + paymentData.lastName + "</last_name><address1>" + paymentData.addressOne + "</address1><address2 nil='nil'/><city>" + paymentData.city + "</city><state>" + paymentData.StateCode + "</state>" +
-                "<zip>" + paymentData.zipCode + "</zip><country>" + paymentData.countryList + "</country><phone nil='nil'/><vat_number nil='nil'/><year type='integer'>" + paymentData.CCYear + "</year>" +
-                "<month type='integer'>" + paymentData.CCMonth + "</month><number>" + paymentData.CCNumber + "</number></billing_info></account></transaction>";
+                "<account href='https://kids-discover-test.recurly.com/v2/accounts/" + paymentData.emailId + "'/>" +
+                    "<amount_in_cents type='integer'>" + paymentData.amount + "</amount_in_cents>" +
+                    "<currency>USD</currency>" +
+                    "<payment_method>credit_card</payment_method>" +
+                    "<account>" +
+                    "<account_code>" + paymentData.emailId + "</account_code>" +
+                    "<first_name>" + paymentData.firstName + "</first_name>" +
+                    "<last_name>" + paymentData.lastName + "</last_name>" +
+                    "<email>" + paymentData.emailId + "</email>" +
+                    "<company_name>ifgathering</company_name>" +
+                    "<address>" +
+                        "<address1>" + paymentData.addressOne + "</address1>" +
+                        "<address2 nil='nil'/>" +
+                        "<city>" + paymentData.city + "</city>" +
+                        "<state>" + paymentData.StateCode + "</state>" +
+                        "<zip>" + paymentData.zipCode + "</zip>" +
+                        "<country>" + paymentData.countryList + "</country>" +
+                        "<phone nil='nil'/>" +
+                    "</address>" +
+                    "<billing_info type='credit_card'>" +
+                        "<first_name>" + paymentData.firstName + "</first_name>" +
+                        "<last_name>" + paymentData.lastName + "</last_name>" +
+                        "<address1>" + paymentData.addressOne + "</address1>" +
+                        "<address2 nil='nil'/>" +
+                        "<city>" + paymentData.city + "</city>" +
+                        "<state>" + paymentData.StateCode + "</state>" +
+                        "<zip>" + paymentData.zipCode + "</zip>" +
+                        "<country>" + paymentData.countryList + "</country>" +
+                        "<phone nil='nil'/>" +
+                        "<vat_number nil='nil'/>" +
+                        "<year type='integer'>" + paymentData.CCYear + "</year>" +
+                        "<month type='integer'>" + paymentData.CCMonth + "</month>" +
+                        "<number>" + paymentData.CCNumber + "</number>" +
+                    "</billing_info>" +
+                "</account>" +
+                "</transaction>";
             let url = config.recurly.transactionURL;
             let headers = {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: url, body: body, headers: headers}, function (recurlyErr, response, body) {
+            request.post({
+                url: url,
+                body: body,
+                headers: headers
+            }, function (recurlyErr, response, body) {
                 if (recurlyErr) {
-                    return response.json(recurlyErr);
+
+                  return res
+                            .send(500)
+                            .json({error: 'RECURLY_MONTHLY_GIVING_ERROR'});
                 } else {
                     if (response.statusCode === 201) {
-                        return res.json({'msg': 'success'});
+                        return res.json({'Message': 'success'});
                     } else {
                         return res.json({'status_code': response.statusCode, 'body': response.body});
                     }
@@ -108,7 +158,7 @@ router.post('/ach', function (req, res) {
         let paymentDataACH = req.body;
 
         if (paymentDataACH.monthlyGiving) {
-            let subscription_body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='bank_account'>" +
+            let body = "<subscription href='https://kids-discover-test.recurly.com/v2/subscriptions' type='bank_account'>" +
                 "<plan_code>ifgmonthlysb</plan_code>" +
                 "<unit_amount_in_cents type='integer'>" + paymentDataACH.amount + "</unit_amount_in_cents>" +
                 "<currency>USD</currency>" +
@@ -120,15 +170,15 @@ router.post('/ach', function (req, res) {
                 "<billing_info type='credit_card'><address1>" + paymentDataACH.addressOne + "</address1><address2 nil='nil'/><city>" + paymentDataACH.city + "</city><state>" + paymentDataACH.StateCode + "</state><zip>" + paymentDataACH.zipCode + "</zip>" +
                 "<country>" + paymentDataACH.countryList + "</country><phone nil='nil'/><vat_number nil='nil'/><name_on_account>" + paymentDataACH.accountName + "</name_on_account><account_type>" + paymentDataACH.accountType + "</account_type>" +
                 "<account_number>" + paymentDataACH.accountNumber + "</account_number><company>OLIVE</company><routing_number type='integer'>" + paymentDataACH.routingNumber + "</routing_number></billing_info></account></subscription>";
-            let subscription_url = config.recurly.subscriptionURL;
-            var subscription_headers = {
+            let url = config.recurly.subscriptionURL;
+            var headers = {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
             request.post({
-                url: subscription_url,
-                body: subscription_body,
-                headers: subscription_headers
+                url: url,
+                body: body,
+                headers: headers
             }, function (recurlyErr, response, body) {
                 if (recurlyErr) {
                     return recurlyErr;
@@ -161,7 +211,11 @@ router.post('/ach', function (req, res) {
                 'Accept': 'application/xml',
                 'Authorization': 'Basic ' + encodedKey
             };
-            request.post({url: url, body: body, headers: headers}, function (recurlyErr, response, body) {
+            request.post({
+                url: url,
+                body: body,
+                headers: headers
+            }, function (recurlyErr, response, body) {
                 if (recurlyErr) {
                     return recurlyErr;
                 } else {

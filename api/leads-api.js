@@ -1,4 +1,4 @@
-"use strict"
+'use strict';
 
 const express = require('express');
 const router = express.Router();
@@ -10,10 +10,10 @@ router.post('/lead', (req, res) => {
 
     if (Object.keys(req.body).length === 0) {
         return res
-            .status(422)
-            .json({
-                message: 'INVALID_BODY'
-            });
+                .status(422)
+                .json({
+                    message: 'INVALID_BODY'
+                });
     }
 
     let user = new User({
@@ -31,10 +31,10 @@ router.post('/lead', (req, res) => {
         .then(
             (lead) => {
                 res.status(200).json({
-                    "Message": "Leads added succesfully"
+                    'Message': 'Leads added succesfully'
                 })},
             (error) => {
-                res.send(error);
+                res.json({'Message': error});
 
             }
         );
