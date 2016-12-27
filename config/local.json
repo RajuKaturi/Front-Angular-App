@@ -3,7 +3,7 @@
     "port": "4000"
   },
   "mongodb": {
-    "url": "localhost:27777",
+    "url": "localhost:27017",
     "db": "ifgather",
     "collections": {
       "user": {

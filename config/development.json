@@ -1,6 +1,7 @@
 {
   "mongodb": {
     "url": "iad2-c4-1.mongo.objectrocket.com:52208,iad2-c4-0.mongo.objectrocket.com:52208,iad2-c4-2.mongo.objectrocket.com:52208",
+    "replicaSet": "83a526439437471bb7c7bcfec2f0a9a0",
     "db": "ifg_users",
     "username": "devteamolive",
     "password": "Olive&devs08",

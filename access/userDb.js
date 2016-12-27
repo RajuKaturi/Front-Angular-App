@@ -11,7 +11,7 @@ function UserDb() {
   this.options = (((config.mongodb || {}).collections || {}).user || {}).options || null;
 }
 
-UserDb.prototype.save = mongo;
+UserDb.prototype.save = save;
 
 //////////
 function save(entity) {

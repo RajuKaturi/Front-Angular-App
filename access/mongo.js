@@ -38,9 +38,9 @@ function open() {
     let url = '';
     if (config && config.mongodb) {
       if (!config.mongodb.username || !config.mongodb.password) {
-        url = `mongodb://${config.mongodb.url}/${config.mongodb.db}`
+        url = `mongodb://${config.mongodb.url}/${config.mongodb.db}?replicaSet=${config.mongodb.replicaSet}`
       } else {
-        url = `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.url}/${config.mongodb.db}`;
+        url = `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.url}/${config.mongodb.db}?replicaSet=${config.mongodb.replicaSet}`;
       }
     }
 
