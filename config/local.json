@@ -1,10 +1,24 @@
 {
+  "server": {
+    "port": "4000"
+  },
   "mongodb": {
-    "url": "localhost:27017",
+    "url": "localhost:27777",
     "db": "ifgather",
-    "username": "gowtham",
-    "password": "gowtham",
-    "collection": "users"
+    "collections": {
+      "user": {
+        "name": "users",
+        "options": null
+      },
+      "creditCard": {
+        "name": "transactions",
+        "options": null
+      },
+      "ach": {
+        "name": "transactions",
+        "options": null
+      }
+    }
   },
   "recurly": {
     "API_KEY": "7a4a27967d674d6885923933bcef12fd",

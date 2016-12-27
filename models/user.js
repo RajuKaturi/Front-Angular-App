@@ -1,24 +1,28 @@
 'use strict';
 
-let mongoose = require('mongoose');
-let conn = require('../access/mongo');
+const ObjectId = require('mongodb').ObjectID;
+const UserDb = require('../access/userDb');
 
-let userSchema = mongoose.Schema ({
-                    firstName: { type: String, required: true},
-                    lastName: { type: String, required: true},
-                    email: { type: String, required: true},
-                    isLocalLeader: Boolean,
-                    pushToActOn: Boolean,
-                    pushToSalesForce: Boolean
+module.exports = User;
 
-                 });
+function User(init) {
+  this._id = (init._id) ? new ObjectId(init._id) : null;
+  this.firstName = String(init.firstName || '');
+  this.lastName = String(init.lastName || '');
+  this.email = String(init.email || '');
+  this.isLocalLeader = Boolean(init.isLocalLeader || false);
+  this.pushToActOn = Boolean(init.pushToActOn || false);
+  this.pushToSalesForce = Boolean(init.pushToSalesForce || false);
+}
 
-// Add custom methods
+User.prototype.save = save;
 
-
-// generate model
-const userModel = conn.model('ifg_leads', userSchema);
-
-
-//export model
-module.exports = userModel;
+//////////
+function save() {
+  return new Promise((resolve, reject) => {
+    new UserDb()
+      .save(this)
+      .then(resolve)
+      .catch(reject);
+  });
+}

@@ -4,7 +4,20 @@
     "db": "",
     "username": "",
     "password": "",
-    "collection": ""
+    "collections": {
+      "user": {
+        "name": "",
+        "options": null
+      },
+      "creditCard": {
+        "name": "",
+        "options": null
+      },
+      "ach": {
+        "name": "",
+        "options": null
+      }
+    }
   },
   "recurly": {
     "API_KEY": "",
