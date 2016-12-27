@@ -1,0 +1,27 @@
+{
+  "mongodb": {
+    "url": "",
+    "db": "",
+    "username": "",
+    "password": "",
+    "collections": {
+      "user": {
+        "name": "",
+        "options": null
+      },
+      "creditCard": {
+        "name": "",
+        "options": null
+      },
+      "ach": {
+        "name": "",
+        "options": null
+      }
+    }
+  },
+  "recurly": {
+    "API_KEY": "",
+    "transactionURL": "",
+    "subscriptionURL": ""
+  }
+}

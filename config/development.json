@@ -1,0 +1,30 @@
+{
+  "mongodb": {
+    "url": "iad2-c4-1.mongo.objectrocket.com:52208,iad2-c4-0.mongo.objectrocket.com:52208,iad2-c4-2.mongo.objectrocket.com:52208",
+    "db": "ifg_users",
+    "username": "devteamolive",
+    "password": "Olive&devs08",
+    "collections": {
+      "user": {
+        "name": "ifg_leads",
+        "options": null
+      },
+      "creditCard": {
+        "name": "transactions",
+        "options": null
+      },
+      "ach": {
+        "name": "transactions",
+        "options": null
+      }
+    }
+  },
+  "recurly": {
+    "API_KEY": "7a4a27967d674d6885923933bcef12fd",
+    "transactionURL": "https://kids-discover-test.recurly.com/v2/transactions",
+    "subscriptionURL": "https://kids-discover-test.recurly.com/v2/subscriptions"
+  },
+  "headers": {
+    "Access-Control-Allow-Origin": "*"
+  }
+}

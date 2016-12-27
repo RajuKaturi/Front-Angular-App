@@ -1,0 +1,28 @@
+{
+  "server": {
+    "port": "4000"
+  },
+  "mongodb": {
+    "url": "localhost:27777",
+    "db": "ifgather",
+    "collections": {
+      "user": {
+        "name": "users",
+        "options": null
+      },
+      "creditCard": {
+        "name": "transactions",
+        "options": null
+      },
+      "ach": {
+        "name": "transactions",
+        "options": null
+      }
+    }
+  },
+  "recurly": {
+    "API_KEY": "7a4a27967d674d6885923933bcef12fd",
+    "transactionURL": "https://kids-discover-test.recurly.com/v2/transactions",
+    "subscriptionURL": "https://kids-discover-test.recurly.com/v2/subscriptions"
+  }
+}

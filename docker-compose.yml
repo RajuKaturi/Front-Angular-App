@@ -1,0 +1,6 @@
+version: '2'
+services:
+    if-gathering-testing:
+        image: mongo
+        ports:
+            - 127.0.0.1:27777:27017
