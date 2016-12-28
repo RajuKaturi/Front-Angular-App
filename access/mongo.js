@@ -38,12 +38,12 @@ function open() {
     let url = '';
     if (config && config.mongodb) {
       if (!config.mongodb.username || !config.mongodb.password) {
-        url = `mongodb://${config.mongodb.url}/${config.mongodb.db}?replicaSet=${config.mongodb.replicaSet}`
+        url = `mongodb://${config.mongodb.url}/${config.mongodb.db}`
       } else {
-        url = `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.url}/${config.mongodb.db}?replicaSet=${config.mongodb.replicaSet}`;
+        url = `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.url}/${config.mongodb.db}${config.mongodb.options}`;
       }
     }
-
+    console.log(url);
     MongoClient
       .connect(url)
       .then((db) => {
