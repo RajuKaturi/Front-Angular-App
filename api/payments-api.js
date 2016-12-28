@@ -84,19 +84,15 @@ function postAch(req, res) {
                                                                                   }
                                                                                  else
                                                                                   {
-                                                                                      console.log("Recurly transaction done Sucessfully");
                                                                                        res.send("200");
                                                                                   }
 
                                                                               });
                                                                         
                                                                 // }
-                                          
                                                        }
-                                          
                                           });
                                        }
-                                     
                                 });
 
                 }else{
@@ -109,7 +105,6 @@ function postAch(req, res) {
                           
                               if(err)
                               {
-                                  console.log("customer");
                                   res.send("444");
                               }
                               else
@@ -123,7 +118,6 @@ function postAch(req, res) {
                                       {
                                           if(err)
                                           {
-                                              console.log("bankAccount error");
                                               res.send("444");
                                           }
                                           else
@@ -157,14 +151,12 @@ function postAch(req, res) {
                                                           {
                                                               if(err)
                                                               {
-                                                                  console.log("charge error");
+                                                                  
                                                                   res.send("444");
                                                                   
                                                               }
                                                               else{
                                                                      res.send("200");
-                                                                    console.log("Single ACH bank_account transaction done sucessfully")
-                                                                       
                                                                   }
                                       
                                                           }) 
@@ -359,7 +351,6 @@ function postCreditCard(req, res) {
                             {     
                                 if(err)
                                    {
-                                      console.log("customer error");
                                       res.send("444");
                                     }
                                     else
@@ -392,13 +383,10 @@ function postCreditCard(req, res) {
                                                               {
                                                                  if(err)
                                                                     {
-                                                                      console.log("subscription error");
-                                                                      console.log(err);
+                                                                    
                                                                       res.send('444');
                                                                     }else
-
                                                                       {
-                                                                        console.log("recurly transactiondone")
                                                                         res.send('200');
                                                                       }
 
@@ -420,8 +408,6 @@ function postCreditCard(req, res) {
                             {     
                                if(err)
                                   {
-                                        
-                                      console.log("customer error");
                                       res.send("444");
                                   }
                                   else
@@ -456,13 +442,9 @@ function postCreditCard(req, res) {
                                                 {
                                                     if(err)
                                                     {
-                                                      
-                                                        console.log("charge error");
                                                        res.send('444');
                                                     }
                                                     else{
-                                                           console.log("Single Transcation has been done sucessfully");
-                                                          
                                                            res.send('200');
                                                          }
                                 
