@@ -34,7 +34,7 @@ function postAch(req, res) {
                         {   
                             if(err)
                                 {
-                                   console.log("customer"+err);
+                                   
                                    res.send("444");
                                 }else
                                    {
@@ -48,22 +48,15 @@ function postAch(req, res) {
                                          {
                                              if(err)
                                               {
-                                                 console.log("bankAccount error");
+                                                 
                                                  res.send("444")
                                               }else
                                                    {
-                                                        // if(customer.account_balance< (req.body.amount * 100))
-                                                        //   {
-                                                        //       console.log("Please check the amount in your account");
-                                                              
-                                                        //           res.send({'status':400,
-                                                        //       'message':"Please check the amount in your card"});
-                                                        //   }else
-                                                        //      {
+                                                        
                                                                   stripe.subscriptions.create
                                                                     ({
                                                                         customer: customer.id,
-                                                                        plan: "TestPlan",
+                                                                        plan: "666624680067334",
                                                                          metadata:{
                                                                                     userName:req.body.data.bank_account.name,
                                                                                     Email:req.body.email,
@@ -79,17 +72,46 @@ function postAch(req, res) {
                                                                            {
                                                                                if(err)
                                                                                   {
-                                                                                      res.send("subscription error");
+                                                                                     
                                                                                      res.send("444");
                                                                                   }
                                                                                  else
                                                                                   {
-                                                                                       res.send("200");
+                                                                                          
+                                                                                           stripe.charges.create
+                                                                                           ({
+                                                                                            amount: req.body.amount *100, // Amount in cents
+                                                                                            currency: "usd",
+                                                                                            customer: customer.id,
+                                                                                            metadata:
+                                                                                            {
+                                                                                              userName:req.body.data.bank_account.name,
+                                                                                              Email:req.body.email,
+                                                                                              Address1:req.body.address1,
+                                                                                              Address2:req.body.address2,
+                                                                                              City:req.body.city,
+                                                                                              State:req.body.state,
+                                                                                              Zip:req.body.zip,
+                                                                                              Country:req.body.country,
+                                                                                              phoneNumber:req.body.phoneNumber
+                                                                                          }, // Previously stored, then retrieved
+                                                                                          },function(err, charge)
+                                                                                              {
+                                                                                                 if(err)
+                                                                                                    {
+                                                                                                    
+                                                                                                      console.log("444");
+                                                                                                    }else
+                                                                                                      {
+                                                                                                          res.send("200");
+                                                                                                      }
+
+                                                                                               });   
+                                                                                               
                                                                                   }
 
                                                                               });
-                                                                        
-                                                                // }
+                                                                
                                                        }
                                           });
                                        }
@@ -122,18 +144,11 @@ function postAch(req, res) {
                                           }
                                           else
                                           {
-                                              // if(customer.account_balance < (req.body.amount * 100))
-                                              //    {
-
-                                              //           console.log(" Please check the amount in card");
-                                              //           res.send({'status':400,
-                                              //             'message':"Please check the amount in your card"});
-                                              //    }else
-                                              //    {
+                                              
                                                       stripe.charges.create
                                                       ({
                                                           amount:req.body.amount *100,
-                                                          description: "ACH bank_account olive",
+                                                          description: "ACH stripe single payment",
                                                           currency: "usd",
                                                           customer: customer.id,
                                                           metadata: {
@@ -160,7 +175,7 @@ function postAch(req, res) {
                                                                   }
                                       
                                                           }) 
-                                                // }
+                                                
                                           }
                                         
                                   });
@@ -355,14 +370,7 @@ function postCreditCard(req, res) {
                                     }
                                     else
                                      {
-                                         // if(customer.account_balance< (req.body.amount * 100))
-                                         // {
-
-                                         //        console.log(" Please check the amount in your card");
-                                         //       res.send({'status':400,
-                                         //                  'message':"Please check the amount in your card"});
-                                         // }else{
-                                                                                  
+                                                                        
                                                     stripe.subscriptions.create
                                                        ({
                                                              customer: customer.id,
@@ -387,12 +395,44 @@ function postCreditCard(req, res) {
                                                                       res.send('444');
                                                                     }else
                                                                       {
-                                                                        res.send('200');
+                                                                           
+                                                                           stripe.charges.create
+                                                                           ({
+                                                                              amount: req.body.amount *100, // Amount in cents
+                                                                              currency: "usd",
+                                                                              customer: customer.id,
+                                                                              metadata:
+                                                                                {
+                                                                                  userName:req.body.data.card.name,
+                                                                                  Email:req.body.email,
+                                                                                  Address1:req.body.data.card.address_line1,
+                                                                                  Address2:req.body.data.card.address_line2,
+                                                                                  City:req.body.data.card.address_city,
+                                                                                  State:req.body.data.card.address_state,
+                                                                                  Zip:req.body.data.card.address_zip,
+                                                                                  Country:req.body.data.card.address_country,
+                                                                                  phoneNumber:req.body.phoneNumber
+                                                                                } 
+                                                                          },function(err, charge)
+                                                                              {
+                                                                                 if(err)
+                                                                                    {
+                                                                                    
+                                                                                      console.log("444");
+                                                                                    }else
+                                                                                      {
+                                                                                         
+                                                                                          res.send("200");
+                                                                                      }
+
+                                                                               });    
+
+
                                                                       }
 
                                                                 });
                                                       
-                                                // }
+                                              
 
                                       }
                               });
@@ -412,14 +452,7 @@ function postCreditCard(req, res) {
                                   }
                                   else
                                   {
-                                      // if(customer.account_balance< (req.body.amount * 100))
-                                      //    {
-
-                                      //           console.log(" Please check the amount in your card");
-                                      //           res.send({'status':400,
-                                      //                     'message':"Please check the amount in your card"});
-                                      //    }else
-                                      //    {
+                                      
                                               stripe.charges.create
                                               ({
                                                   amount:req.body.amount * 100,
@@ -449,7 +482,7 @@ function postCreditCard(req, res) {
                                                          }
                                 
                                                })
-                                        // }
+                                        
                  
                                 }
                             })
