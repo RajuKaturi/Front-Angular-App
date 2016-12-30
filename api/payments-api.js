@@ -56,7 +56,7 @@ function postAch(req, res) {
                                                                   stripe.subscriptions.create
                                                                     ({
                                                                         customer: customer.id,
-                                                                        plan: "666624680067334",
+                                                                        plan: "OliveTest",
                                                                          metadata:{
                                                                                     userName:req.body.data.bank_account.name,
                                                                                     Email:req.body.email,
@@ -94,13 +94,13 @@ function postAch(req, res) {
                                                                                               Zip:req.body.zip,
                                                                                               Country:req.body.country,
                                                                                               phoneNumber:req.body.phoneNumber
-                                                                                          }, // Previously stored, then retrieved
+                                                                                          }, 
                                                                                           },function(err, charge)
                                                                                               {
                                                                                                  if(err)
                                                                                                     {
                                                                                                     
-                                                                                                      console.log("444");
+                                                                                                      res.send("444");
                                                                                                     }else
                                                                                                       {
                                                                                                           res.send("200");
@@ -374,7 +374,7 @@ function postCreditCard(req, res) {
                                                     stripe.subscriptions.create
                                                        ({
                                                              customer: customer.id,
-                                                              plan: "666624680067334",
+                                                              plan: "OliveTest",
                                                               metadata:
                                                               {
                                                                 userName:req.body.data.card.name,
