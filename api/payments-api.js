@@ -26,6 +26,7 @@ function postAch(req, res) {
 
   if(req.body.status==true)
               {
+                
                  stripe.customers.create
                   ({
                       source: req.body.data.id,
@@ -55,7 +56,7 @@ function postAch(req, res) {
                                                         
                                                                   stripe.subscriptions.create
                                                                     ({
-                                                                        customer: customer.id,
+                                                                        customer: bankAccount.customer,
                                                                         plan: "OliveTest",
                                                                          metadata:{
                                                                                     userName:req.body.data.bank_account.name,
@@ -82,7 +83,7 @@ function postAch(req, res) {
                                                                                            ({
                                                                                             amount: req.body.amount *100, // Amount in cents
                                                                                             currency: "usd",
-                                                                                            customer: customer.id,
+                                                                                            customer: subscription.customer,
                                                                                             metadata:
                                                                                             {
                                                                                               userName:req.body.data.bank_account.name,
@@ -144,13 +145,13 @@ function postAch(req, res) {
                                           }
                                           else
                                           {
-                                              
+                                                     console.log(bankAccount.customer) 
                                                       stripe.charges.create
                                                       ({
                                                           amount:req.body.amount *100,
                                                           description: "ACH stripe single payment",
                                                           currency: "usd",
-                                                          customer: customer.id,
+                                                          customer: bankAccount.customer,
                                                           metadata: {
                                                                       userName:req.body.data.bank_account.name,
                                                                       Email:req.body.email,
@@ -171,6 +172,7 @@ function postAch(req, res) {
                                                                   
                                                               }
                                                               else{
+                                                                     
                                                                      res.send("200");
                                                                   }
                                       
@@ -358,6 +360,7 @@ function postCreditCard(req, res) {
 
                 if(req.body.status==true)
                 {
+
                   stripe.customers.create
                       ({
                           source:req.body.data.id,
@@ -370,7 +373,7 @@ function postCreditCard(req, res) {
                                     }
                                     else
                                      {
-                                                                        
+                                                                    
                                                     stripe.subscriptions.create
                                                        ({
                                                              customer: customer.id,
@@ -400,7 +403,7 @@ function postCreditCard(req, res) {
                                                                            ({
                                                                               amount: req.body.amount *100, // Amount in cents
                                                                               currency: "usd",
-                                                                              customer: customer.id,
+                                                                              customer: subscription.customer,
                                                                               metadata:
                                                                                 {
                                                                                   userName:req.body.data.card.name,
@@ -418,7 +421,7 @@ function postCreditCard(req, res) {
                                                                                  if(err)
                                                                                     {
                                                                                     
-                                                                                      console.log("444");
+                                                                                      res.send("444");
                                                                                     }else
                                                                                       {
                                                                                          
