@@ -28,7 +28,7 @@ function postAch(req, res) {
               {
                    var plan = stripe.plans.create
                     ({
-                        name:req.body.data.bank_account.name,
+                        name:req.body.email,
                         id: req.body.data.id,
                         interval: "day",
                         currency: "usd",
@@ -123,7 +123,7 @@ function postAch(req, res) {
                                           }
                                           else
                                           {
-                                                     console.log(bankAccount.customer) 
+                                                    
                                                       stripe.charges.create
                                                       ({
                                                           amount:req.body.amount *100,
@@ -342,7 +342,7 @@ function postCreditCard(req, res) {
 
                        
                       var plan = stripe.plans.create({
-                        name:req.body.data.card.name,
+                        name:req.body.email,
                         id: req.body.data.id,
                         interval: "day",
                         currency: "usd",
