@@ -8,6 +8,7 @@ const encodedKey = base64.encode(config.recurly.API_KEY);
 const express = require('express');
 const router = express.Router();
 const request = require('request');
+const mongo = require('../access/mongo');
 
 
 var stripe = require('stripe')("sk_test_J0awUPn92Yeo4OkqpTEaaEbE")
@@ -23,118 +24,145 @@ module.exports = router;
 
 /////////////
 function postAch(req, res) {
-      if(req.body.status==true){
-              var plan = stripe.plans.create({
-                        name:req.body.email,
-                        id: req.body.data.id,
-                        interval: "day",
-                        currency: "usd",
-                        amount:req.body.amount *100,
-                      }, function(err, plan){
-                            if(err){
-                                      return res.status(444).send('Failure');
-                            }else{
-                            stripe.customers.create({
-                                  source: req.body.data.id,
-                                  email: req.body.email,     
-                               },function(err,customer){   
-                                    if(err){
-                                               return res.status(444).send('Failure');
-                                      }else{
-                                              stripe.customers.verifySource(
-                                                   customer.id,
-                                                   customer.default_source,
-                                                    {
-                                                       amounts: [32, 45]
-                                                    },
-                                              function(err, bankAccount){
-                                                  if(err){
-                                                            return res.status(444).send('Failure');
-                                                    }else{
-                                                             stripe.subscriptions.create({
-                                                                  customer: bankAccount.customer,
-                                                                  plan: req.body.data.id,
-                                                                  metadata:{
-                                                                              userName:req.body.data.bank_account.name,
-                                                                              Email:req.body.email,
-                                                                              Address1:req.body.address1,
-                                                                              Address2:req.body.address2,
-                                                                              City:req.body.city,
-                                                                              State:req.body.state,
-                                                                               Zip:req.body.zip,
-                                                                              Country:req.body.country,
-                                                                              phoneNumber:req.body.phoneNumber
-                                                                            },
-                                                             } , function(err, subscription) {
-                                                                      if(err){
-                                                                                return res.status(444).send('Failure');
-                                                                        }else{
-                                                                                return res.status(200).send('Sucess');
-                                                                          }
+  if (req.body.status == true) {
+    var plan = stripe.plans.create({
+      name: req.body.email,
+      id: req.body.data.id,
+      interval: "day",
+      currency: "usd",
+      amount: req.body.amount * 100,
+    }, function (err, plan) {
+      if (err) {
+        return res.status(444).send('Failure');
+      } else {
+        stripe.customers.create({
+          source: req.body.data.id,
+          email: req.body.email,
+        }, function (err, customer) {
+          if (err) {
+            return res.status(444).send('Failure');
+          } else {
+            stripe.customers.verifySource(
+              customer.id,
+              customer.default_source,
+              {
+                amounts: [32, 45]
+              },
+              function (err, bankAccount) {
+                if (err) {
+                  return res.status(444).send('Failure');
+                } else {
+                  stripe.subscriptions.create({
+                      customer: bankAccount.customer,
+                      plan: req.body.data.id,
+                      metadata: {
+                        userName: req.body.data.bank_account.name,
+                        Email: req.body.email,
+                        Address1: req.body.address1,
+                        Address2: req.body.address2,
+                        City: req.body.city,
+                        State: req.body.state,
+                        Zip: req.body.zip,
+                        Country: req.body.country,
+                        phoneNumber: req.body.phoneNumber
+                      },
+                    }, function (err, subscription) {
+                      if (err) {
+                        return res.status(444).send('Failure');
+                      } else {
+                        //return res.status(200).send('Sucess');
+                        console.log("...>subscription ...", subscription.id, subscription.customer, subscription.metadata.Email, subscription);
+                        mongo.db.collection('ifg_ach').insertOne({
+                          "_id": subscription.id,
+                          "customerId": subscription.customer,
+                          "emailId": subscription.metadata.Email,
+                          "responseObj": subscription
+                        }).then(() => {
+                          console.log('mongo success');
+                          res.sendStatus(200).json();
+                        }).catch(()=> {
+                          console.log('mongo error' + error);
+                          //res.send('200');   
+                        })
+                      }
 
-                                                                  });
-                                                                
-                                                           }
-                                                 });
-                                       }
-                                });
-                              }
-                            });
+                    }
+                  );
 
-                }else{
+                }
+              });
+          }
+        });
+      }
+    });
 
-                        stripe.customers.create({
-                            source: req.body.data.id,
-                            email: req.body.email, 
-                         },function(err,customer){   
-                              if(err){
-                                  return res.status(444).send('Failure');
-                               }
-                              else{
-                                    stripe.customers.verifySource(
-                                    customer.id,
-                                    customer.default_source,
-                                    {
-                                      amounts: [32, 45]
-                                    }, function(err, bankAccount){
-                                          if(err){
-                                              return res.status(444).send('Failure');
-                                            }
-                                            else{
-                                                    stripe.charges.create({
-                                                          amount:req.body.amount *100,
-                                                          currency: "usd",
-                                                          customer: bankAccount.customer,
-                                                          metadata: {
-                                                                      userName:req.body.data.bank_account.name,
-                                                                      Email:req.body.email,
-                                                                      Address1:req.body.address1,
-                                                                      Address2:req.body.address2,
-                                                                      City:req.body.city,
-                                                                      State:req.body.state,
-                                                                      Zip:req.body.zip,
-                                                                      Country:req.body.country,
-                                                                      phoneNumber:req.body.phoneNumber
-                                                                      },
-                                                       },function(err,charge){
-                                                              if(err){
-                                                                        return res.status(444).send('Failure');
-                                                                }else{
-                                                                     
-                                                                     return res.status(200).send('Sucess');
-                                                                  }
-                                      
-                                                           }) 
-                                                
-                                             }
-                                        
-                                   });
-                             
-                          }
-                      
+  } else {
 
-                  })
-             } 
+    stripe.customers.create({
+      source: req.body.data.id,
+      email: req.body.email,
+    }, function (err, customer) {
+      if (err) {
+        return res.status(444).send('Failure');
+      }
+      else {
+        stripe.customers.verifySource(
+          customer.id,
+          customer.default_source,
+          {
+            amounts: [32, 45]
+          }, function (err, bankAccount) {
+            if (err) {
+              return res.status(444).send('Failure');
+            }
+            else {
+              stripe.charges.create({
+                  amount: req.body.amount * 100,
+                  currency: "usd",
+                  customer: bankAccount.customer,
+                  metadata: {
+                    userName: req.body.data.bank_account.name,
+                    Email: req.body.email,
+                    Address1: req.body.address1,
+                    Address2: req.body.address2,
+                    City: req.body.city,
+                    State: req.body.state,
+                    Zip: req.body.zip,
+                    Country: req.body.country,
+                    phoneNumber: req.body.phoneNumber
+                  },
+                }, function (err, charge) {
+                  if (err) {
+                    return res.status(444).send('Failure');
+                  } else {
+
+                    //return res.status(200).send('Sucess');
+                    mongo.db.collection('ifg_ach').insertOne({
+                      "_id": charge.id,
+                      "customerId": charge.customer,
+                      "emailId": charge.metadata.Email,
+                      "responseObj": charge
+                    }).then(() => {
+                      console.log('mongo success');
+                      res.sendStatus(200).json();
+                    }).catch(()=> {
+                      console.log('mongo error' + error);
+                      //res.send('200');   
+                    })
+                  }
+
+                }
+              )
+
+            }
+
+          });
+
+      }
+
+
+    })
+  }
 
 //Commenting the upstream code for internal purpose.
   // if (Object.keys(req.body).length === 0) {
@@ -221,7 +249,7 @@ function postAch(req, res) {
   // }
 
   // function getMonthlyGivingBody() {
-  //   return ` 
+  //   return `
   //     <subscription href="https://kids-discover-test.recurly.com/v2/subscriptions" type="bank_account">
   //       <plan_code>ifgmonthlysb</plan_code>
   //       <unit_amount_in_cents type="integer">${paymentDataACH.amount}</unit_amount_in_cents>
@@ -261,10 +289,10 @@ function postAch(req, res) {
   // }
 
   // function getOneTimeGivingBody() {
-  //   return ` 
+  //   return `
   //       <transaction href="https://kids-discover-test.recurly.com/v2/transactions" type="bank_account">
   //           <account href="${AccountUrlACH}"/>
-  //           <amount_in_cents type="integer">${paymentDataACH.amount}</amount_in_cents>          
+  //           <amount_in_cents type="integer">${paymentDataACH.amount}</amount_in_cents>
   //           <currency>USD</currency>
   //           <payment_method>ACH</payment_method>
   //           <account>
@@ -303,99 +331,121 @@ function postAch(req, res) {
   // }
 }
 
-      function postCreditCard(req, res) {
-                 if(req.body.status==true){
-                      var plan = stripe.plans.create({
-                        name:req.body.email,
-                        id: req.body.data.id,
-                        interval: "day",
-                        currency: "usd",
-                        amount:req.body.amount *100,
-                   }, function(err, plan){
-                            if(err){
-                                      return res.status(444).send('Failure');
-                            }else{
+function postCreditCard(req, res) {
+  if (req.body.status == true) {
+    var plan = stripe.plans.create({
+      name: req.body.email,
+      id: req.body.data.id,
+      interval: "day",
+      currency: "usd",
+      amount: req.body.amount * 100,
+    }, function (err, plan) {
+      if (err) {
+        return res.status(444).send('Failure');
+      } else {
 
-                          stripe.customers.create({
-                            source:req.body.data.id,
-                            email: req.body.email,
-                          },function(err,customer){     
-                                  if(err){
-                                            return res.status(444).send('Failure');
-                                          }else{
-                                                  stripe.subscriptions.create({
-                                                      customer: customer.id,
-                                                      plan: req.body.data.id,
-                                                      metadata:
-                                                       {
-                                                         userName:req.body.data.card.name,
-                                                         Email:req.body.email,
-                                                         Address1:req.body.data.card.address_line1,
-                                                         Address2:req.body.data.card.address_line2,
-                                                         City:req.body.data.card.address_city,
-                                                         State:req.body.data.card.address_state,
-                                                         Zip:req.body.data.card.address_zip,
-                                                         Country:req.body.data.card.address_country,
-                                                         phoneNumber:req.body.phoneNumber
-                                                        }
-                                                    }, function(err, subscription){
-                                                          if(err){
-                                                                   return res.status(444).send('Failure');
-                                                            }else{
-                                                                    return res.status(200).send('Sucess');
-                                                              }
+        stripe.customers.create({
+          source: req.body.data.id,
+          email: req.body.email,
+        }, function (err, customer) {
+          if (err) {
+            return res.status(444).send('Failure');
+          } else {
+            stripe.subscriptions.create({
+                customer: customer.id,
+                plan: req.body.data.id,
+                metadata: {
+                  userName: req.body.data.card.name,
+                  Email: req.body.email,
+                  Address1: req.body.data.card.address_line1,
+                  Address2: req.body.data.card.address_line2,
+                  City: req.body.data.card.address_city,
+                  State: req.body.data.card.address_state,
+                  Zip: req.body.data.card.address_zip,
+                  Country: req.body.data.card.address_country,
+                  phoneNumber: req.body.phoneNumber
+                }
+              }, function (err, subscription) {
+                if (err) {
+                  return res.status(444).send('Failure');
+                } else {
+                  //return res.status(200).send('Sucess');
+                  mongo.db
+                    .collection('ifg_creditCard').insertOne({
+                    "_id": subscription.id,
+                    "customerId": subscription.customer,
+                    "emailId": subscription.metadata.Email,
+                    "responseObj": subscription
+                  }).then(() => {
+                    console.log('mongo success');
+                    res.sendStatus(200).json();
+                  }).catch(()=> {
+                    console.log('mongo error' + error);
+                    //res.send('200');   
+                  })
+                }
 
-                                                        });
-                                                                  
-                                                 }
-                                          });
-                                  }          
-                             });
-               
+              }
+            );
 
-                 } else{
-                           stripe.customers.create({
-                                source: req.body.data.id,
-                                email: req.body.email, 
-                            },function(err,customer)
-                                {     
-                                   if(err){
-                                          return res.status(444).send('Failure');
-                                      }
-                                      else{
-                                              stripe.charges.create({
-                                                  amount:req.body.amount * 100,
-                                                  currency: "usd",
-                                                  customer: customer.id,
-                                                   metadata:{
-                                                              userName:req.body.data.card.name,
-                                                              Email:req.body.email,
-                                                              Address1:req.body.data.card.address_line1,
-                                                              Address2:req.body.data.card.address_line2,
-                                                              City:req.body.data.card.address_city,
-                                                              State:req.body.data.card.address_state,
-                                                              Zip:req.body.data.card.address_zip,
-                                                              Country:req.body.data.card.address_country,
-                                                              phoneNumber:req.body.phoneNumber
-                  
-                                                            }
-                                               },function(err,charge){
-                                                    if(err){
-                                                       return res.status(444).send('Failure');
-                                                    }
-                                                    else{
-                                                            return res.status(200).send('Sucess');
-                                                     }
-                                
-                                                  })
-                                                       
-                                          }
-                              })
-
-                    }
+          }
+        });
+      }
+    });
 
 
+  } else {
+    stripe.customers.create({
+      source: req.body.data.id,
+      email: req.body.email,
+    }, function (err, customer) {
+      if (err) {
+        return res.status(444).send('Failure');
+      }
+      else {
+        stripe.charges.create({
+          amount: req.body.amount * 100,
+          currency: "usd",
+          customer: customer.id,
+          metadata: {
+            userName: req.body.data.card.name,
+            Email: req.body.email,
+            Address1: req.body.data.card.address_line1,
+            Address2: req.body.data.card.address_line2,
+            City: req.body.data.card.address_city,
+            State: req.body.data.card.address_state,
+            Zip: req.body.data.card.address_zip,
+            Country: req.body.data.card.address_country,
+            phoneNumber: req.body.phoneNumber
 
+          }
+        }, function (err, charge) {
+          if (err) {
+            return res.status(444).send('Failure');
+          }
+          else {
+            //return res.status(200).send('Sucess');
+            mongo.db.collection('ifg_creditCard').insertOne({
+              "_id": charge.id,
+              "customerId": charge.customer,
+              "emailId": charge.metadata.Email,
+              "responseObj": charge
+            }).then(() => {
+              console.log('mongo success');
+              res.sendStatus(200).json();
+            }).catch(()=> {
+              console.log('mongo error' + error); 
+              //res.send('200');   
+              })
+            }
+
+          }
+          )
+
+      }
+    })
+
+  }
 
 
   // Commenting Up stream code now

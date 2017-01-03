@@ -4,17 +4,18 @@ const config = require('./config');
 const mongo = require('./mongo');
 const ObjectId = require('mongodb').ObjectID;
 
-module.exports = CreditCardDb;
+module.exports = AchDb;
 
-function CreditCardDb() {
+function AchDb() {
   this.collectionName = (((config.mongodb || {}).collections || {}).ach || {}).name || 'transactions';
   this.options = (((config.mongodb || {}).collections || {}).ach || {}).options || null;
 }
 
-CreditCardDb.prototype.save = save;
+AchDb.prototype.save = save;
 
 //////////
 function save(entity) {
+  console.log("save -- entity");
   return new Promise((resolve, reject) => {
     entity._id = new ObjectId();
     mongo
