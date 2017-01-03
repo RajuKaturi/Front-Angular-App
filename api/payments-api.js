@@ -26,103 +26,81 @@ function postAch(req, res) {
 
   if(req.body.status==true)
               {
-                
-                 stripe.customers.create
-                  ({
-                      source: req.body.data.id,
-                      email: req.body.email,     
-                   },function(err,customer)
-                        {   
-                            if(err)
-                                {
-                                   
-                                   res.send("444");
-                                }else
-                                   {
-                                       stripe.customers.verifySource(
-                                       customer.id,
-                                       customer.default_source,
-                                        {
-                                           amounts: [32, 45]
-                                        },
-                                       function(err, bankAccount)
-                                         {
-                                             if(err)
-                                              {
-                                                 
-                                                 res.send("444")
-                                              }else
-                                                   {
-                                                        
-                                                                  stripe.subscriptions.create
-                                                                    ({
-                                                                        customer: bankAccount.customer,
-                                                                        plan: "OliveTest",
-                                                                         metadata:{
-                                                                                    userName:req.body.data.bank_account.name,
-                                                                                    Email:req.body.email,
-                                                                                    Address1:req.body.address1,
-                                                                                    Address2:req.body.address2,
-                                                                                    City:req.body.city,
-                                                                                    State:req.body.state,
-                                                                                    Zip:req.body.zip,
-                                                                                    Country:req.body.country,
-                                                                                    phoneNumber:req.body.phoneNumber
-                                                                                  },
-                                                                      }, function(err, subscription) 
-                                                                           {
-                                                                               if(err)
-                                                                                  {
-                                                                                     
-                                                                                     res.send("444");
-                                                                                  }
-                                                                                 else
-                                                                                  {
-                                                                                          
-                                                                                           stripe.charges.create
-                                                                                           ({
-                                                                                            amount: req.body.amount *100, // Amount in cents
-                                                                                            currency: "usd",
-                                                                                            customer: subscription.customer,
-                                                                                            metadata:
-                                                                                            {
-                                                                                              userName:req.body.data.bank_account.name,
-                                                                                              Email:req.body.email,
-                                                                                              Address1:req.body.address1,
-                                                                                              Address2:req.body.address2,
-                                                                                              City:req.body.city,
-                                                                                              State:req.body.state,
-                                                                                              Zip:req.body.zip,
-                                                                                              Country:req.body.country,
-                                                                                              phoneNumber:req.body.phoneNumber
-                                                                                          }, 
-                                                                                          },function(err, charge)
-                                                                                              {
-                                                                                                 if(err)
-                                                                                                    {
-                                                                                                    
-                                                                                                      res.send("444");
-                                                                                                    }else
-                                                                                                      {
-                                                                                                          res.send("200");
-                                                                                                      }
-
-                                                                                               });   
+                   var plan = stripe.plans.create
+                    ({
+                        name:req.body.data.bank_account.name,
+                        id: req.body.data.id,
+                        interval: "day",
+                        currency: "usd",
+                        amount:req.body.amount *100,
+                      }, function(err, plan)
+                         {
+                            stripe.customers.create
+                              ({
+                                  source: req.body.data.id,
+                                  email: req.body.email,     
+                               },function(err,customer)
+                                    {   
+                                        if(err)
+                                           {
+                                                res.send("444");
+                                            }else{
+                                                   stripe.customers.verifySource(
+                                                   customer.id,
+                                                   customer.default_source,
+                                                    {
+                                                       amounts: [32, 45]
+                                                    },
+                                                       function(err, bankAccount)
+                                                         {
+                                                             if(err)
+                                                              {
+                                                                 
+                                                                 res.send("444")
+                                                              }else{
+                                                                        
+                                                                      stripe.subscriptions.create
+                                                                        ({
+                                                                            customer: bankAccount.customer,
+                                                                            plan: req.body.data.id,
+                                                                             metadata:{
+                                                                                        userName:req.body.data.bank_account.name,
+                                                                                        Email:req.body.email,
+                                                                                        Address1:req.body.address1,
+                                                                                        Address2:req.body.address2,
+                                                                                        City:req.body.city,
+                                                                                        State:req.body.state,
+                                                                                        Zip:req.body.zip,
+                                                                                        Country:req.body.country,
+                                                                                        phoneNumber:req.body.phoneNumber
+                                                                                      },
+                                                                           } , function(err, subscription) 
+                                                                               {
+                                                                                   if(err)
+                                                                                      {
+                                                                                         
+                                                                                         res.send("444");
+                                                                                      }
+                                                                                     else{
+                                                                                              res.send("200");
+                                                                                              
                                                                                                
-                                                                                  }
+                                                                                      }
 
-                                                                              });
+                                                                                  });
                                                                 
                                                        }
                                           });
                                        }
                                 });
+                            });
 
                 }else{
 
                         stripe.customers.create
                       ({
                           source: req.body.data.id,
+                          email: req.body.email, 
                        },function(err,customer)
                            {   
                           
@@ -149,7 +127,7 @@ function postAch(req, res) {
                                                       stripe.charges.create
                                                       ({
                                                           amount:req.body.amount *100,
-                                                          description: "ACH stripe single payment",
+                                                          
                                                           currency: "usd",
                                                           customer: bankAccount.customer,
                                                           metadata: {
@@ -359,94 +337,77 @@ function postCreditCard(req, res) {
 
 
                 if(req.body.status==true)
+
                 {
 
-                  stripe.customers.create
-                      ({
-                          source:req.body.data.id,
-                          email: req.body.email,
-                        },function(err,customer)
-                            {     
-                                if(err)
-                                   {
-                                      res.send("444");
-                                    }
-                                    else
-                                     {
-                                                                    
-                                                    stripe.subscriptions.create
-                                                       ({
-                                                             customer: customer.id,
-                                                              plan: "OliveTest",
-                                                              metadata:
-                                                              {
-                                                                userName:req.body.data.card.name,
-                                                                Email:req.body.email,
-                                                                Address1:req.body.data.card.address_line1,
-                                                                Address2:req.body.data.card.address_line2,
-                                                                City:req.body.data.card.address_city,
-                                                                State:req.body.data.card.address_state,
-                                                                Zip:req.body.data.card.address_zip,
-                                                                Country:req.body.data.card.address_country,
-                                                                phoneNumber:req.body.phoneNumber
-                                                              }
-                                                         }, function(err, subscription)
-                                                              {
-                                                                 if(err)
-                                                                    {
-                                                                    
-                                                                      res.send('444');
-                                                                    }else
-                                                                      {
-                                                                           
-                                                                           stripe.charges.create
-                                                                           ({
-                                                                              amount: req.body.amount *100, // Amount in cents
-                                                                              currency: "usd",
-                                                                              customer: subscription.customer,
-                                                                              metadata:
+                       
+                      var plan = stripe.plans.create({
+                        name:req.body.data.card.name,
+                        id: req.body.data.id,
+                        interval: "day",
+                        currency: "usd",
+                        amount:req.body.amount *100,
+                      }, function(err, plan)
+                           {
+                        
+                              stripe.customers.create
+                                  ({
+                                      source:req.body.data.id,
+                                      email: req.body.email,
+                                    },function(err,customer)
+                                        {     
+                                            if(err)
+                                               {
+                                                  res.send("444");
+                                                }
+                                                else
+                                                 {
+                                                                             
+                                                                stripe.subscriptions.create
+                                                                   ({
+                                                                         customer: customer.id,
+                                                                          plan: req.body.data.id,
+                                                                          metadata:
+                                                                          {
+                                                                            userName:req.body.data.card.name,
+                                                                            Email:req.body.email,
+                                                                            Address1:req.body.data.card.address_line1,
+                                                                            Address2:req.body.data.card.address_line2,
+                                                                            City:req.body.data.card.address_city,
+                                                                            State:req.body.data.card.address_state,
+                                                                            Zip:req.body.data.card.address_zip,
+                                                                            Country:req.body.data.card.address_country,
+                                                                            phoneNumber:req.body.phoneNumber
+                                                                          }
+                                                                     }, function(err, subscription)
+                                                                          {
+                                                                             if(err)
                                                                                 {
-                                                                                  userName:req.body.data.card.name,
-                                                                                  Email:req.body.email,
-                                                                                  Address1:req.body.data.card.address_line1,
-                                                                                  Address2:req.body.data.card.address_line2,
-                                                                                  City:req.body.data.card.address_city,
-                                                                                  State:req.body.data.card.address_state,
-                                                                                  Zip:req.body.data.card.address_zip,
-                                                                                  Country:req.body.data.card.address_country,
-                                                                                  phoneNumber:req.body.phoneNumber
-                                                                                } 
-                                                                          },function(err, charge)
-                                                                              {
-                                                                                 if(err)
-                                                                                    {
-                                                                                    
-                                                                                      res.send("444");
-                                                                                    }else
-                                                                                      {
-                                                                                         
-                                                                                          res.send("200");
-                                                                                      }
+                                                                                
+                                                                                  res.send('444');
+                                                                                }else
+                                                                                  {
+                                                                                   
+                                                                                      res.send("200") 
+                                                                                     
 
-                                                                               });    
+                                                                                  }
 
+                                                                            });
+                                                                  
+                                                          
 
-                                                                      }
-
-                                                                });
-                                                      
-                                              
-
-                                      }
-                              });
-                                
-
+                                                  }
+                                          });
+                                            
+                             });
                
 
                  } else{
                            stripe.customers.create
                            ({
                                 source: req.body.data.id,
+                                email: req.body.email, 
                             },function(err,customer)
                             {     
                                if(err)
@@ -459,7 +420,7 @@ function postCreditCard(req, res) {
                                               stripe.charges.create
                                               ({
                                                   amount:req.body.amount * 100,
-                                                  description: "custom stripe single payment",
+                                                 
                                                   currency: "usd",
                                                   customer: customer.id,
                                                    metadata:{
