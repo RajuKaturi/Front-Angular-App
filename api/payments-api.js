@@ -9,6 +9,8 @@ const express = require('express');
 const router = express.Router();
 const request = require('request');
 
+const mongo = require('../access/mongo');
+
 
 var stripe = require('stripe')("sk_test_J0awUPn92Yeo4OkqpTEaaEbE")
 
@@ -303,8 +305,43 @@ function postAch(req, res) {
   // }
 }
 
+
+
+
+
+
+
       function postCreditCard(req, res) {
+         var customerId ;
+                  var Strpstatus;
+                  var FinalData;
+                  mongo
+                      .db
+                      .collection('ifg_creditCard')
+                      .find({"emailId":req.body.email}).toArray()
+                      .then((data) => {
+                        console.log(data)
+                                       
+                                       FinalData = data;
+
+                                       if(FinalData == ''){
+                                        Strpstatus = false;
+                                        console.log('false')
+                                        
+                                      } else{
+                                        Strpstatus = true;
+                                         customerId = FinalData[0].customerId;
+                                         console.log("Final data"+FinalData);
+                                      }
+
+                                      })
+                                      .catch((err) => {
+                                                          console.log(err);
+                                                      })  
+
                  if(req.body.status==true){
+                     
+
                       var plan = stripe.plans.create({
                         name:req.body.email,
                         id: req.body.data.id,
@@ -313,47 +350,111 @@ function postAch(req, res) {
                         amount:req.body.amount *100,
                    }, function(err, plan){
                             if(err){
+                              console.log('This is plan... errr')
                                       return res.status(444).send('Failure');
                             }else{
+                              if (Strpstatus == true) {
+                                              customerId = customerId;
 
-                          stripe.customers.create({
-                            source:req.body.data.id,
-                            email: req.body.email,
-                          },function(err,customer){     
-                                  if(err){
-                                            return res.status(444).send('Failure');
-                                          }else{
-                                                  stripe.subscriptions.create({
-                                                      customer: customer.id,
-                                                      plan: req.body.data.id,
-                                                      metadata:
-                                                       {
-                                                         userName:req.body.data.card.name,
-                                                         Email:req.body.email,
-                                                         Address1:req.body.data.card.address_line1,
-                                                         Address2:req.body.data.card.address_line2,
-                                                         City:req.body.data.card.address_city,
-                                                         State:req.body.data.card.address_state,
-                                                         Zip:req.body.data.card.address_zip,
-                                                         Country:req.body.data.card.address_country,
-                                                         phoneNumber:req.body.phoneNumber
-                                                        }
-                                                    }, function(err, subscription){
-                                                          if(err){
-                                                                   return res.status(444).send('Failure');
-                                                            }else{
-                                                                    return res.status(200).send('Sucess');
-                                                              }
+                                              stripe.subscriptions.create({
+                                                                          customer: customerId,
+                                                                          plan: req.body.data.id,
+                                                                          metadata:
+                                                                           {
+                                                                             userName:req.body.data.card.name,
+                                                                             Email:req.body.email,
+                                                                             Address1:req.body.data.card.address_line1,
+                                                                             Address2:req.body.data.card.address_line2,
+                                                                             City:req.body.data.card.address_city,
+                                                                             State:req.body.data.card.address_state,
+                                                                             Zip:req.body.data.card.address_zip,
+                                                                             Country:req.body.data.card.address_country,
+                                                                             phoneNumber:req.body.phoneNumber
+                                                                            }
+                                                                        }, function(err, subscription){
+                                                                              if(err){
+                                                                                       return res.status(444).send('Failure');
+                                                                                }else{
+                                                                                        return res.status(200).send('Sucess');
+                                                                                  }
 
-                                                        });
-                                                                  
-                                                 }
-                                          });
+                                                                            });
+
+                                            }else{
+                                              stripe.customers.create({
+                                                source:req.body.data.id,
+                                                email: req.body.email,
+                                              },function(err,customer){     
+                                                      if(err){
+                                                                return res.status(444).send('Failure');
+                                                              }else{
+                                                                
+
+                                                                      stripe.subscriptions.create({
+                                                                          customer: customer.id,
+                                                                          plan: req.body.data.id,
+                                                                          metadata:
+                                                                           {
+                                                                             userName:req.body.data.card.name,
+                                                                             Email:req.body.email,
+                                                                             Address1:req.body.data.card.address_line1,
+                                                                             Address2:req.body.data.card.address_line2,
+                                                                             City:req.body.data.card.address_city,
+                                                                             State:req.body.data.card.address_state,
+                                                                             Zip:req.body.data.card.address_zip,
+                                                                             Country:req.body.data.card.address_country,
+                                                                             phoneNumber:req.body.phoneNumber
+                                                                            }
+                                                                        }, function(err, subscription){
+                                                                              if(err){
+                                                                                       return res.status(444).send('Failure');
+                                                                                }else{
+                                                                                        return res.status(200).send('Sucess');
+                                                                                  }
+
+                                                                            });
+                                                                                      
+                                                                     }
+                                                              });
+
+                                                                }
+
+                          
                                   }          
                              });
                
 
                  } else{
+
+                          if (Strpstatus == true) {
+                                stripe.charges.create({
+                                                  amount:req.body.amount * 100,
+                                                  currency: "usd",
+                                                  customer: customerId,
+                                                   metadata:{
+                                                              userName:req.body.data.card.name,
+                                                              Email:req.body.email,
+                                                              Address1:req.body.data.card.address_line1,
+                                                              Address2:req.body.data.card.address_line2,
+                                                              City:req.body.data.card.address_city,
+                                                              State:req.body.data.card.address_state,
+                                                              Zip:req.body.data.card.address_zip,
+                                                              Country:req.body.data.card.address_country,
+                                                              phoneNumber:req.body.phoneNumber
+                  
+                                                            }
+                                               },function(err,charge){
+                                                    if(err){
+                                                       return res.status(444).send('Failure');
+                                                    }
+                                                    else{
+                                                            return res.status(200).send('Sucess');
+                                                     }
+                                
+                                                  })
+
+
+                          } else{
                            stripe.customers.create({
                                 source: req.body.data.id,
                                 email: req.body.email, 
@@ -391,11 +492,12 @@ function postAch(req, res) {
                                                        
                                           }
                               })
+                         }
 
                     }
 
 
-
+//Sample code....
 
 
   // Commenting Up stream code now
