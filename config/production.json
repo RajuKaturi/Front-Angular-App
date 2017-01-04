@@ -16,6 +16,14 @@
       "ach": {
         "name": "",
         "options": null
+      },
+      "CreditCard": {
+        "name": "",
+        "options": null
+      },
+      "Ach": {
+        "name": "",
+        "options": null
       }
     }
   },
