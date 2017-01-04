@@ -15,7 +15,6 @@ CreditCardDb.prototype.save = save;
 
 //////////
 function save(entity) {
-  console.log("Before: save -- entity");
   return new Promise((resolve, reject) => {
     entity._id = new ObjectId();
     mongo
@@ -27,6 +26,5 @@ function save(entity) {
       })
       .catch(reject);
   });
-  //console.log("AFter: save -- entity");
 }
 

@@ -25,6 +25,9 @@
     "transactionURL": "https://kids-discover-test.recurly.com/v2/transactions",
     "subscriptionURL": "https://kids-discover-test.recurly.com/v2/subscriptions"
   },
+  "stripe": {
+    "PUBLIC_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE"
+  },
   "headers": {
     "Access-Control-Allow-Origin": "*"
   }

@@ -10,8 +10,7 @@ const router = express.Router();
 const request = require('request');
 const mongo = require('../access/mongo');
 
-
-var stripe = require('stripe')("sk_test_J0awUPn92Yeo4OkqpTEaaEbE")
+var stripe = require('stripe')(config.stripe.PUBLIC_KEY);
 
 
 // API for recurly ACH payment
@@ -28,9 +27,10 @@ function postAch(req, res) {
   var customerId;
   var Strpstatus;
   var defaultSource;
+  let defaultSourceForACH ;
   mongo
     .db
-    .collection('ifg_ach')
+    .collection('ifg_Ach')
     .find({"emailId": req.body.email}).toArray()
     .then((data) => {
       console.log(data)
@@ -77,20 +77,12 @@ function postAch(req, res) {
               if (err) {
                 return res.send(444);
               } else {
-                
-                mongo.db.collection('ifg_ach').insertOne({
-                  "_id": subscription.id,
-                  "customerId": subscription.customer,
-                  "emailId": subscription.metadata.Email,
-                  "responseObj": subscription
-                }).then(() => {
-                  console.log('mongo success');
-                  console.log(subscription)
-                  res.sendStatus(200).json();
-                }).catch(() => {
-                  console.log('mongo error' + error);
-                  //res.send('200');   
-                })
+
+                new Ach(subscription, defaultSourceForACH).save().then(() => {
+                   return res.send(200);
+                 }).catch(()=> {
+                   return res.send(444);
+                 })
               }
 
             }
@@ -134,19 +126,10 @@ function postAch(req, res) {
                         if (err) {
                           return res.send(444);
                         } else {
-                          //return res.status(200).send('Sucess');
-                          console.log("...>subscription ...", subscription.id, subscription.customer, subscription.metadata.Email, subscription);
-                          mongo.db.collection('ifg_ach').insertOne({
-                            "_id": subscription.id,
-                            "customerId": subscription.customer,
-                            "emailId": subscription.metadata.Email,
-                            "responseObj": subscription
-                          }).then(() => {
-                            console.log('mongo success');
-                            res.sendStatus(200).json();
-                          }).catch(() => {
-                            console.log('mongo error' + error);
-                            //res.send('200');   
+                          new Ach(subscription, defaultSourceForACH).save().then(() => {
+                            return res.send(200);
+                          }).catch(()=> {
+                            return res.send(444);
                           })
                         }
 
@@ -187,19 +170,10 @@ function postAch(req, res) {
                     if (err) {
                       return res.send(444);
                     } else {
-
-                      //return res.status(200).send('Sucess');
-                      mongo.db.collection('ifg_ach').insertOne({
-                        "_id": charge.id,
-                        "customerId": charge.customer,
-                        "emailId": charge.metadata.Email,
-                        "responseObj": charge
-                      }).then(() => {
-                        console.log('mongo success');
-                        res.sendStatus(200).json();
-                      }).catch(() => {
-                        console.log('mongo error' + error);
-                        //res.send('200');   
+                      new Ach(charge, defaultSourceForACH).save().then(() => {
+                        return res.send(200);
+                      }).catch(()=> {
+                        return res.send(444);
                       })
                     }
 
@@ -246,19 +220,10 @@ function postAch(req, res) {
                     if (err) {
                       return res.send(444);
                     } else {
-
-                      //return res.status(200).send('Sucess');
-                      mongo.db.collection('ifg_ach').insertOne({
-                        "_id": charge.id,
-                        "customerId": charge.customer,
-                        "emailId": charge.metadata.Email,
-                        "responseObj": charge
-                      }).then(() => {
-                        console.log('mongo success');
-                        res.sendStatus(200).json();
-                      }).catch(() => {
-                        console.log('mongo error' + error);
-                        //res.send('200');   
+                      new Ach(charge, defaultSourceForACH).save().then(() => {
+                        return res.send(200);
+                      }).catch(()=> {
+                        return res.send(444);
                       })
                     }
 
@@ -274,7 +239,7 @@ function postAch(req, res) {
 
       })
     }
-    
+
   }
 
     })
@@ -292,7 +257,7 @@ function postCreditCard(req, res) {
   var FinalData;
   mongo
     .db
-    .collection('ifg_creditCard')
+    .collection('ifg_CreditCard')
     .find({"emailId": req.body.email}).toArray()
     .then((data) => {
       console.log(data)
@@ -346,19 +311,11 @@ function postCreditCard(req, res) {
               return res.send(444);
             } else {
 
-              mongo.db.collection('ifg_creditCard').insertOne({
-                "_id": subscription.id,
-                "customerId": subscription.customer,
-                "emailId": subscription.metadata.Email,
-                "responseObj": subscription
-              }).then(() => {
-                console.log('mongo success');
-                res.sendStatus(200).json();
-              }).catch(() => {
-                console.log('mongo error' + error);
-                //res.send('200');   
+              new CreditCard(subscription).save().then(() => {
+                return res.send(200);
+              }).catch(()=> {
+                return res.send(444);
               })
-              return res.send(200);
             }
 
           });
@@ -391,20 +348,11 @@ function postCreditCard(req, res) {
                 if (err) {
                   return res.send(444);
                 } else {
-
-                  mongo.db.collection('ifg_creditCard').insertOne({
-                    "_id": subscription.id,
-                    "customerId": subscription.customer,
-                    "emailId": subscription.metadata.Email,
-                    "responseObj": subscription
-                  }).then(() => {
-                    console.log('mongo success');
-                    res.sendStatus(200).json();
-                  }).catch(() => {
-                    console.log('mongo error' + error);
-                    //res.send('200');   
+                  new CreditCard(subscription).save().then(() => {
+                    return res.send(200);
+                  }).catch(()=> {
+                    return res.send(444);
                   })
-                return res.send(200);
                 }
 
               });
@@ -443,20 +391,11 @@ function postCreditCard(req, res) {
           return res.send(444);
         }
         else {
-
-          mongo.db.collection('ifg_creditCard').insertOne({
-            "_id": charge.id,
-            "customerId": charge.customer,
-            "emailId": charge.metadata.Email,
-            "responseObj": charge
-          }).then(() => {
-            console.log('mongo success');
-            res.sendStatus(200).json();
-          }).catch(() => {
-            console.log('mongo error' + error);
-            //res.send('200');   
+          new CreditCard(charge).save().then(() => {
+            return res.send(200);
+          }).catch(()=> {
+            return res.send(444);
           })
-          return res.send(200);
         }
 
       })
@@ -492,20 +431,11 @@ function postCreditCard(req, res) {
               return res.send(444);
             }
             else {
-
-              mongo.db.collection('ifg_creditCard').insertOne({
-                "_id": charge.id,
-                "customerId": charge.customer,
-                "emailId": charge.metadata.Email,
-                "responseObj": charge
-              }).then(() => {
-                console.log('mongo success');
-                res.sendStatus(200).json();
-              }).catch(() => {
-                console.log('mongo error' + error);
-                //res.send('200');   
+              new CreditCard(charge).save().then(() => {
+                return res.send(200);
+              }).catch(()=> {
+                return res.send(444);
               })
-              return res.send(200);
             }
 
           })
@@ -522,7 +452,7 @@ function postCreditCard(req, res) {
       return res.send(444);
     })
 
-  
+
 
 
 //Sample code....
@@ -698,5 +628,3 @@ function postCreditCard(req, res) {
 
 
 }
-
-

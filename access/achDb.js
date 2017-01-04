@@ -15,7 +15,6 @@ AchDb.prototype.save = save;
 
 //////////
 function save(entity) {
-  console.log("save -- entity");
   return new Promise((resolve, reject) => {
     entity._id = new ObjectId();
     mongo
