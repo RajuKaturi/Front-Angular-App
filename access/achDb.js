@@ -7,14 +7,15 @@ const ObjectId = require('mongodb').ObjectID;
 module.exports = AchDb;
 
 function AchDb() {
-  this.collectionName = (((config.mongodb || {}).collections || {}).ach || {}).name || 'transactions';
-  this.options = (((config.mongodb || {}).collections || {}).ach || {}).options || null;
+  this.collectionName = (((config.mongodb || {}).collections || {}).Ach || {}).name || 'transactions';
+  this.options = (((config.mongodb || {}).collections || {}).Ach || {}).options || null;
 }
 
 AchDb.prototype.save = save;
 
 //////////
 function save(entity) {
+  console.log("save(entity)");
   return new Promise((resolve, reject) => {
     entity._id = new ObjectId();
     mongo

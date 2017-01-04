@@ -12,106 +12,56 @@ const mongo = require('../access/mongo');
 
 var stripe = require('stripe')(config.stripe.PUBLIC_KEY);
 
-// API for ACH payment
+
+// API for recurly ACH payment
 router.post('/ach', postAch);
 
-// API for CreditCard payment
+// APi for recurly credit card payment
 router.post('/creditcard', postCreditCard);
 
 module.exports = router;
 
-//API method for ACH payment processing
+/////////////
 function postAch(req, res) {
 
-  let defaultSourceForACH;
-  if (req.body.status == true) {
-    var plan = stripe.plans.create({
-      name: req.body.email,
-      id: req.body.data.id,
-      interval: "day",
-      currency: "usd",
-      amount: req.body.amount * 100,
-    }, function (err, plan) {
-      if (err) {
-        return res.status(444).send('Failure');
+  var customerId;
+  var Strpstatus;
+  var defaultSource;
+  let defaultSourceForACH ;
+  mongo
+    .db
+    .collection('ifg_Ach')
+    .find({"emailId": req.body.email}).toArray()
+    .then((data) => {
+      console.log(data)
+
+      if (data == '') {
+        Strpstatus = false;
+        console.log('false')
+
       } else {
-        stripe.customers.create({
-          source: req.body.data.id,
-          email: req.body.email,
-        }, function (err, customer) {
+        Strpstatus = true;
+        console.log(Strpstatus)
+        customerId = data[0].customerId;
+        defaultSource = data[0].defaultSourceForACH;
+      }
+
+      if (req.body.status == true) {
+        var plan = stripe.plans.create({
+          name: req.body.email,
+          id: req.body.data.id,
+          interval: "day",
+          currency: "usd",
+          amount: req.body.amount * 100,
+        }, function (err, plan) {
           if (err) {
-            return res.status(444).send('Failure');
+            return res.send(444);
           } else {
-            defaultSourceForACH = customer.default_source;
-            stripe.customers.verifySource(
-              customer.id,
-              defaultSourceForACH,
-              {
-                amounts: [32, 45]
-              },
-              function (err, bankAccount) {
-                if (err) {
-                  return res.status(444).send('Failure');
-                } else {
-                  stripe.subscriptions.create({
-                      customer: bankAccount.customer,
-                      plan: req.body.data.id,
-                      metadata: {
-                        userName: req.body.data.bank_account.name,
-                        Email: req.body.email,
-                        Address1: req.body.address1,
-                        Address2: req.body.address2,
-                        City: req.body.city,
-                        State: req.body.state,
-                        Zip: req.body.zip,
-                        Country: req.body.country,
-                        phoneNumber: req.body.phoneNumber
-                      },
-                    }, function (err, subscription) {
-                      if (err) {
-                        return res.status(444).send('Failure');
-                      } else {
-                        new Ach(subscription, defaultSourceForACH).save().then(() => {
-                          return res.status(200).send('Success');
-                        }).catch(()=> {
-                          return res.status(444).send('Failure');
-                        })
-                      }
 
-                    }
-                  );
-
-                }
-              });
-          }
-        });
-      }
-    });
-
-  } else {
-
-    stripe.customers.create({
-      source: req.body.data.id,
-      email: req.body.email,
-    }, function (err, customer) {
-      if (err) {
-        return res.status(444).send('Failure');
-      }
-      else {
-        stripe.customers.verifySource(
-          customer.id,
-          defaultSourceForACH,
-          {
-            amounts: [32, 45]
-          }, function (err, bankAccount) {
-            if (err) {
-              return res.status(444).send('Failure');
-            }
-            else {
-              stripe.charges.create({
-                  amount: req.body.amount * 100,
-                  currency: "usd",
-                  customer: bankAccount.customer,
+            if (Strpstatus === true) {
+              stripe.subscriptions.create({
+                  customer: customerId,
+                  plan: req.body.data.id,
                   metadata: {
                     userName: req.body.data.bank_account.name,
                     Email: req.body.email,
@@ -123,220 +73,227 @@ function postAch(req, res) {
                     Country: req.body.country,
                     phoneNumber: req.body.phoneNumber
                   },
-                }, function (err, charge) {
+                }, function (err, subscription) {
                   if (err) {
-                    return res.status(444).send('Failure');
+                    return res.send(444);
                   } else {
-                    new Ach(charge, defaultSourceForACH).save().then(() => {
-                      return res.status(200).send('Success');
+
+                    new Ach(subscription, defaultSourceForACH).save().then(() => {
+                      return res.send(200);
                     }).catch(()=> {
-                      return res.status(444).send('Failure');
+                      return res.send(444);
                     })
                   }
 
                 }
-              )
+              );
+
+            } else {
+              stripe.customers.create({
+                source: req.body.data.id,
+                email: req.body.email,
+              }, function (err, customer) {
+                if (err) {
+                  return res.status(444).send('Failure');
+                } else {
+                  console.log(customer.default_source);
+                  console.log(customer);
+                  stripe.customers.verifySource(
+                    customer.id,
+                    customer.default_source,
+                    {
+                      amounts: [32, 45]
+                    },
+                    function (err, bankAccount) {
+                      if (err) {
+                        return res.send(444);
+                      } else {
+                        stripe.subscriptions.create({
+                            customer: bankAccount.customer,
+                            plan: req.body.data.id,
+                            metadata: {
+                              userName: req.body.data.bank_account.name,
+                              Email: req.body.email,
+                              Address1: req.body.address1,
+                              Address2: req.body.address2,
+                              City: req.body.city,
+                              State: req.body.state,
+                              Zip: req.body.zip,
+                              Country: req.body.country,
+                              phoneNumber: req.body.phoneNumber
+                            },
+                          }, function (err, subscription) {
+                            if (err) {
+                              return res.send(444);
+                            } else {
+                              new Ach(subscription, defaultSourceForACH).save().then(() => {
+                                return res.send(200);
+                              }).catch(()=> {
+                                return res.send(444);
+                              })
+                            }
+
+                          }
+                        );
+
+                      }
+                    });
+                }
+              });
 
             }
 
-          });
+
+          }
+        });
+
+      } else {
+        if(Strpstatus == true){
+          console.log('thi is single payment in ACH Duplicate..');
+
+          stripe.charges.create({
+              amount: req.body.amount * 100,
+              currency: "usd",
+              customer: customerId,
+              metadata: {
+                userName: req.body.data.bank_account.name,
+                Email: req.body.email,
+                Address1: req.body.address1,
+                Address2: req.body.address2,
+                City: req.body.city,
+                State: req.body.state,
+                Zip: req.body.zip,
+                Country: req.body.country,
+                phoneNumber: req.body.phoneNumber
+              },
+            }, function (err, charge) {
+              if (err) {
+                return res.send(444);
+              } else {
+                new Ach(charge, defaultSourceForACH).save().then(() => {
+                  return res.send(200);
+                }).catch(()=> {
+                  return res.send(444);
+                })
+              }
+
+            }
+          )
+
+        }else{
+          console.log('thi is single payment in ACH new..');
+
+          stripe.customers.create({
+            source: req.body.data.id,
+            email: req.body.email,
+          }, function (err, customer) {
+            if (err) {
+              return res.send(444);
+            }
+            else {
+              stripe.customers.verifySource(
+                customer.id,
+                customer.default_source,
+                {
+                  amounts: [32, 45]
+                }, function (err, bankAccount) {
+                  if (err) {
+                    return res.send(444);
+                  }
+                  else {
+                    stripe.charges.create({
+                        amount: req.body.amount * 100,
+                        currency: "usd",
+                        customer: bankAccount.customer,
+                        metadata: {
+                          userName: req.body.data.bank_account.name,
+                          Email: req.body.email,
+                          Address1: req.body.address1,
+                          Address2: req.body.address2,
+                          City: req.body.city,
+                          State: req.body.state,
+                          Zip: req.body.zip,
+                          Country: req.body.country,
+                          phoneNumber: req.body.phoneNumber
+                        },
+                      }, function (err, charge) {
+                        if (err) {
+                          return res.send(444);
+                        } else {
+                          new Ach(charge, defaultSourceForACH).save().then(() => {
+                            return res.send(200);
+                          }).catch(()=> {
+                            return res.send(444);
+                          })
+                        }
+
+                      }
+                    )
+
+                  }
+
+                });
+
+            }
+
+
+          })
+        }
 
       }
 
-
     })
-  }
+    .catch((err) => {
+      console.log(err);
+    })
 
-//Commenting the upstream code for internal purpose.
-  // if (Object.keys(req.body).length === 0) {
-  //   return res.status(422).json({message: 'INVALID BODY'});
-  // }
 
-  // let paymentDataACH = req.body;
-  // if (paymentDataACH.monthlyGiving) {
-  //   let body = getMonthlyGivingBody();
-  //   let url = config.recurly.subscriptionURL;
-  //   let headers = {
-  //     'Accept': 'application/xml',
-  //     'Authorization': 'Basic ' + encodedKey
-  //   };
-  //   request
-  //     .post({
-  //         url: url,
-  //         body: body,
-  //         headers: headers
-  //       },
-  //       function (recurlyErr, response, recurlyResponseBody) {
-  //         if (recurlyErr) {
-  //           console.error(recurlyErr);
-  //           return res
-  //             .send(500)
-  //             .json({error: 'RECURLY_MONTHLY_GIVING_ERROR'});
-
-  //         } else {
-  //           new Ach(recurlyResponseBody)
-  //             .save()
-  //             .then(() => {
-  //               return (response.statusCode === 201)
-  //                 ? res.json({message: 'success'})
-  //                 : res.json({
-  //                   status_code: response.statusCode,
-  //                   body: response.body
-  //                 });
-  //             })
-  //             .catch((err) => {
-  //               console.log(err);
-  //               res.status(500).json({error: 'ERROR_SAVING_TRANSACTION'});
-  //             });
-  //         }
-  //       });
-
-  // } else {
-
-  //   let AccountUrlACH = "https://kids-discover-test.recurly.com/v2/accounts/" + paymentDataACH.emailId;
-
-  //   let body = getOneTimeGivingBody();
-  //   let url = config.recurly.transactionURL;
-  //   let headers = {
-  //     'Accept': 'application/xml',
-  //     'Authorization': 'Basic ' + encodedKey
-  //   };
-  //   request.post({
-  //       url: url,
-  //       body: body,
-  //       headers: headers
-  //     },
-  //     function (recurlyErr, response, recurlyResponseBody) {
-  //       if (recurlyErr) {
-  //         console.error(recurlyErr);
-  //         return res
-  //           .send(500)
-  //           .json({error: 'RECURLY_ONE_TIME_GIVING_ERROR'});
-  //       } else {
-  //         new Ach(recurlyResponseBody)
-  //           .save()
-  //           .then(() => {
-  //             return (response.statusCode === 201)
-  //               ? res.json({message: 'success'})
-  //               : res.json({
-  //                 status_code: response.statusCode,
-  //                 body: response.body
-  //               });
-  //           })
-  //           .catch((err) => {
-  //             console.log(err);
-  //             res.status(500).json({error: 'ERROR_SAVING_TRANSACTION'});
-  //           });
-  //       }
-  //     });
-  // }
-
-  // function getMonthlyGivingBody() {
-  //   return `
-  //     <subscription href="https://kids-discover-test.recurly.com/v2/subscriptions" type="bank_account">
-  //       <plan_code>ifgmonthlysb</plan_code>
-  //       <unit_amount_in_cents type="integer">${paymentDataACH.amount}</unit_amount_in_cents>
-  //       <currency>USD</currency>
-  //       <account>
-  //         <account_code>${paymentDataACH.emailId}</account_code>
-  //         <first_name>${paymentDataACH.firstName}</first_name>
-  //         <last_name>${paymentDataACH.lastName}</last_name>
-  //         <email>${paymentDataACH.emailId}</email>
-  //         <company_name>ifgathering</company_name>
-  //         <address>
-  //             <address1>${paymentDataACH.addressOne}</address1>
-  //             <address2 nil='nil'/>
-  //             <city>${paymentDataACH.city}</city>
-  //             <state>${paymentDataACH.StateCode}</state>
-  //             <zip>${paymentDataACH.zipCode}</zip>
-  //             <country>paymentData.countryList}</country>
-  //             <phone nil='nil'/>
-  //         </address>
-  //         <billing_info type="credit_card">
-  //             <address1>${paymentDataACH.addressOne}</address1>
-  //             <address2 nil='nil'/>
-  //             <city>${paymentDataACH.city}</city>
-  //             <state>${paymentDataACH.StateCode}</state>
-  //             <zip>${paymentDataACH.zipCode}</zip>
-  //             <country>${paymentDataACH.countryList}</country>
-  //             <phone nil='nil'/><vat_number nil='nil'/>
-  //             <name_on_account>${paymentDataACH.accountName}</name_on_account>
-  //             <account_type>${paymentDataACH.accountType}</account_type>
-  //             <account_number>${paymentDataACH.accountNumber}</account_number>
-  //             <company>OLIVE</company>
-  //             <routing_number type='integer'>${paymentDataACH.routingNumber}</routing_number>
-  //         </billing_info>
-  //       </account>
-  //     </subscription>
-  //   `;
-  // }
-
-  // function getOneTimeGivingBody() {
-  //   return `
-  //       <transaction href="https://kids-discover-test.recurly.com/v2/transactions" type="bank_account">
-  //           <account href="${AccountUrlACH}"/>
-  //           <amount_in_cents type="integer">${paymentDataACH.amount}</amount_in_cents>
-  //           <currency>USD</currency>
-  //           <payment_method>ACH</payment_method>
-  //           <account>
-  //               <account_code>${paymentDataACH.emailId}</account_code>
-  //               <first_name>${paymentDataACH.firstName}</first_name>
-  //               <last_name>${paymentDataACH.lastName}</last_name>
-  //               <email>${paymentDataACH.emailId}</email>
-  //               <company_name>IFG</company_name>
-  //               <address>
-  //                 <address1>${paymentDataACH.addressOne}</address1>
-  //                 <address2 nil="nil"/>
-  //                 <city>${paymentDataACH.city}</city>
-  //                 <state>${paymentDataACH.StateCode}</state>
-  //                 <zip>${paymentDataACH.zipCode}</zip>
-  //                 <country>${paymentDataACH.countryList}</country>
-  //                 <phone nil="nil"/>
-  //               </address>
-  //               <billing_info type="bank_account">
-  //                   <address1>${paymentDataACH.addressOne}</address1>
-  //                   <address2 nil="nil"/>
-  //                   <city>${paymentDataACH.city}</city>
-  //                   <state>${paymentDataACH.StateCode}</state>
-  //                   <zip>${paymentDataACH.zipCode}</zip>
-  //                   <country>${paymentDataACH.countryList}</country>
-  //                   <phone nil="nil"/>
-  //                   <vat_number nil="nil"/>
-  //                   <name_on_account>${paymentDataACH.accountName}</name_on_account>
-  //                   <account_type>${paymentDataACH.accountType}</account_type>
-  //                   <account_number>${paymentDataACH.accountNumber}</account_number>
-  //                   <company>OLIVE</company>
-  //                   <routing_number type="integer"${paymentDataACH.routingNumber}</routing_number>
-  //               </billing_info>
-  //           </account>
-  //       </transaction>
-  //     `;
-  // }
 }
 
-//API method for CreditCard payment processing
-function postCreditCard(req, res) {
-  if (req.body.status == true) {
-    var plan = stripe.plans.create({
-      name: req.body.email,
-      id: req.body.data.id,
-      interval: "day",
-      currency: "usd",
-      amount: req.body.amount * 100,
-    }, function (err, plan) {
-      if (err) {
-        return res.status(444).send('Failure');
-      } else {
 
-        stripe.customers.create({
-          source: req.body.data.id,
-          email: req.body.email,
-        }, function (err, customer) {
+function postCreditCard(req, res) {
+  var customerId;
+  var Strpstatus;
+  var FinalData;
+  mongo
+    .db
+    .collection('ifg_CreditCard')
+    .find({"emailId": req.body.email}).toArray()
+    .then((data) => {
+      console.log(data)
+
+      FinalData = data;
+
+      if (FinalData == '') {
+        Strpstatus = false;
+        console.log('false')
+      } else {
+        Strpstatus = true;
+        customerId = FinalData[0].customerId;
+        console.log("Final data" + FinalData);
+      }
+
+
+
+      if (req.body.status == true) {
+
+
+        var plan = stripe.plans.create({
+          name: req.body.email,
+          id: req.body.data.id,
+          interval: "day",
+          currency: "usd",
+          amount: req.body.amount * 100,
+        }, function (err, plan) {
           if (err) {
-            return res.status(444).send('Failure');
+            console.log('This is plan... errr')
+            return res.send(444);
           } else {
-            stripe.subscriptions.create({
-                customer: customer.id,
+            if (Strpstatus == true) {
+              customerId = customerId;
+
+              stripe.subscriptions.create({
+                customer: customerId,
                 plan: req.body.data.id,
                 metadata: {
                   userName: req.body.data.card.name,
@@ -351,38 +308,72 @@ function postCreditCard(req, res) {
                 }
               }, function (err, subscription) {
                 if (err) {
-                  return res.status(444).send('Failure');
+                  return res.send(444);
                 } else {
-                  new CreditCard(subscription).save().then(() => {
-                    return res.status(200).send('Success');
-                  }).catch(()=> {
-                    return res.status(444).send('Failure');
-                  })
 
+                  new CreditCard(subscription).save().then(() => {
+                    return res.send(200);
+                  }).catch(()=> {
+                    return res.send(444);
+                  })
                 }
 
-              }
-            );
+              });
+
+            } else {
+              stripe.customers.create({
+                source: req.body.data.id,
+                email: req.body.email,
+              }, function (err, customer) {
+                if (err) {
+                  return res.send(444);
+                } else {
+
+
+                  stripe.subscriptions.create({
+                    customer: customer.id,
+                    plan: req.body.data.id,
+                    metadata: {
+                      userName: req.body.data.card.name,
+                      Email: req.body.email,
+                      Address1: req.body.data.card.address_line1,
+                      Address2: req.body.data.card.address_line2,
+                      City: req.body.data.card.address_city,
+                      State: req.body.data.card.address_state,
+                      Zip: req.body.data.card.address_zip,
+                      Country: req.body.data.card.address_country,
+                      phoneNumber: req.body.phoneNumber
+                    }
+                  }, function (err, subscription) {
+                    if (err) {
+                      return res.send(444);
+                    } else {
+                      new CreditCard(subscription).save().then(() => {
+                        return res.send(200);
+                      }).catch(()=> {
+                        return res.send(444);
+                      })
+                    }
+
+                  });
+
+                }
+              });
+
+            }
+
 
           }
         });
-      }
-    });
 
 
-  } else {
-    stripe.customers.create({
-      source: req.body.data.id,
-      email: req.body.email,
-    }, function (err, customer) {
-      if (err) {
-        return res.status(444).send('Failure');
-      }
-      else {
-        stripe.charges.create({
+      } else {
+
+        if (Strpstatus == true) {
+          stripe.charges.create({
             amount: req.body.amount * 100,
             currency: "usd",
-            customer: customer.id,
+            customer: customerId,
             metadata: {
               userName: req.body.data.card.name,
               Email: req.body.email,
@@ -397,23 +388,74 @@ function postCreditCard(req, res) {
             }
           }, function (err, charge) {
             if (err) {
-              return res.status(444).send('Failure');
+              return res.send(444);
             }
             else {
               new CreditCard(charge).save().then(() => {
-                return res.status(200).send('Success');
+                return res.send(200);
               }).catch(()=> {
-                return res.status(444).send('Failure');
+                return res.send(444);
               })
             }
 
-          }
-        )
+          })
+
+
+        } else {
+          stripe.customers.create({
+            source: req.body.data.id,
+            email: req.body.email,
+          }, function (err, customer) {
+            if (err) {
+              return res.send(444);
+            }
+            else {
+              stripe.charges.create({
+                amount: req.body.amount * 100,
+                currency: "usd",
+                customer: customer.id,
+                metadata: {
+                  userName: req.body.data.card.name,
+                  Email: req.body.email,
+                  Address1: req.body.data.card.address_line1,
+                  Address2: req.body.data.card.address_line2,
+                  City: req.body.data.card.address_city,
+                  State: req.body.data.card.address_state,
+                  Zip: req.body.data.card.address_zip,
+                  Country: req.body.data.card.address_country,
+                  phoneNumber: req.body.phoneNumber
+
+                }
+              }, function (err, charge) {
+                if (err) {
+                  return res.send(444);
+                }
+                else {
+                  new CreditCard(charge).save().then(() => {
+                    return res.send(200);
+                  }).catch(()=> {
+                    return res.send(444);
+                  })
+                }
+
+              })
+
+            }
+          })
+        }
 
       }
+
+
+    })
+    .catch((err) => {
+      return res.send(444);
     })
 
-  }
+
+
+
+//Sample code....
 
 
   // Commenting Up stream code now
@@ -586,5 +628,3 @@ function postCreditCard(req, res) {
 
 
 }
-
-
