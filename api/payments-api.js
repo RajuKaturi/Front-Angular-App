@@ -41,17 +41,12 @@ function postAch(req, res) {
 
       } else {
         Strpstatus = true;
+        console.log(Strpstatus)
         customerId = data[0].customerId;
         defaultSource = data[0].defaultSourceForACH;
       }
 
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-
-
-  if (req.body.status == true) {
+      if (req.body.status == true) {
     var plan = stripe.plans.create({
       name: req.body.email,
       id: req.body.data.id,
@@ -60,14 +55,10 @@ function postAch(req, res) {
       amount: req.body.amount * 100,
     }, function (err, plan) {
       if (err) {
-        return res.status(444).send('Failure');
+        return res.send(444);
       } else {
 
         if (Strpstatus === true) {
-
-          console.log(customerId)
-          console.log(defaultSource)
-
           stripe.subscriptions.create({
               customer: customerId,
               plan: req.body.data.id,
@@ -84,10 +75,9 @@ function postAch(req, res) {
               },
             }, function (err, subscription) {
               if (err) {
-                return res.status(444).send('Failure');
+                return res.send(444);
               } else {
-                //return res.status(200).send('Sucess');
-                // console.log("...>subscription ...", subscription.id, subscription.customer, subscription.metadata.Email, subscription);
+                
                 mongo.db.collection('ifg_ach').insertOne({
                   "_id": subscription.id,
                   "customerId": subscription.customer,
@@ -124,7 +114,7 @@ function postAch(req, res) {
                 },
                 function (err, bankAccount) {
                   if (err) {
-                    return res.status(444).send('Failure');
+                    return res.send(444);
                   } else {
                     stripe.subscriptions.create({
                         customer: bankAccount.customer,
@@ -142,7 +132,7 @@ function postAch(req, res) {
                         },
                       }, function (err, subscription) {
                         if (err) {
-                          return res.status(444).send('Failure');
+                          return res.send(444);
                         } else {
                           //return res.status(200).send('Sucess');
                           console.log("...>subscription ...", subscription.id, subscription.customer, subscription.metadata.Email, subscription);
@@ -175,10 +165,123 @@ function postAch(req, res) {
     });
 
   } else {
+ if(Strpstatus == true){
+      console.log('thi is single payment in ACH Duplicate..');
 
-    console.log('thi is single payment in ACH..');
+      stripe.charges.create({
+                    amount: req.body.amount * 100,
+                    currency: "usd",
+                    customer: customerId,
+                    metadata: {
+                      userName: req.body.data.bank_account.name,
+                      Email: req.body.email,
+                      Address1: req.body.address1,
+                      Address2: req.body.address2,
+                      City: req.body.city,
+                      State: req.body.state,
+                      Zip: req.body.zip,
+                      Country: req.body.country,
+                      phoneNumber: req.body.phoneNumber
+                    },
+                  }, function (err, charge) {
+                    if (err) {
+                      return res.send(444);
+                    } else {
+
+                      //return res.status(200).send('Sucess');
+                      mongo.db.collection('ifg_ach').insertOne({
+                        "_id": charge.id,
+                        "customerId": charge.customer,
+                        "emailId": charge.metadata.Email,
+                        "responseObj": charge
+                      }).then(() => {
+                        console.log('mongo success');
+                        res.sendStatus(200).json();
+                      }).catch(() => {
+                        console.log('mongo error' + error);
+                        //res.send('200');   
+                      })
+                    }
+
+                  }
+                )
+
+    }else{
+      console.log('thi is single payment in ACH new..');
+
+      stripe.customers.create({
+        source: req.body.data.id,
+        email: req.body.email,
+      }, function (err, customer) {
+        if (err) {
+          return res.send(444);
+        }
+        else {
+          stripe.customers.verifySource(
+            customer.id,
+            customer.default_source,
+            {
+              amounts: [32, 45]
+            }, function (err, bankAccount) {
+              if (err) {
+                return res.send(444);
+              }
+              else {
+                stripe.charges.create({
+                    amount: req.body.amount * 100,
+                    currency: "usd",
+                    customer: bankAccount.customer,
+                    metadata: {
+                      userName: req.body.data.bank_account.name,
+                      Email: req.body.email,
+                      Address1: req.body.address1,
+                      Address2: req.body.address2,
+                      City: req.body.city,
+                      State: req.body.state,
+                      Zip: req.body.zip,
+                      Country: req.body.country,
+                      phoneNumber: req.body.phoneNumber
+                    },
+                  }, function (err, charge) {
+                    if (err) {
+                      return res.send(444);
+                    } else {
+
+                      //return res.status(200).send('Sucess');
+                      mongo.db.collection('ifg_ach').insertOne({
+                        "_id": charge.id,
+                        "customerId": charge.customer,
+                        "emailId": charge.metadata.Email,
+                        "responseObj": charge
+                      }).then(() => {
+                        console.log('mongo success');
+                        res.sendStatus(200).json();
+                      }).catch(() => {
+                        console.log('mongo error' + error);
+                        //res.send('200');   
+                      })
+                    }
+
+                  }
+                )
+
+              }
+
+            });
+
+        }
+
+
+      })
+    }
     
   }
+
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+
 
 }
 
@@ -199,19 +302,15 @@ function postCreditCard(req, res) {
       if (FinalData == '') {
         Strpstatus = false;
         console.log('false')
-
       } else {
         Strpstatus = true;
         customerId = FinalData[0].customerId;
         console.log("Final data" + FinalData);
       }
 
-    })
-    .catch((err) => {
-      console.log(err);
-    })
 
-  if (req.body.status == true) {
+
+        if (req.body.status == true) {
 
 
     var plan = stripe.plans.create({
@@ -223,7 +322,7 @@ function postCreditCard(req, res) {
     }, function (err, plan) {
       if (err) {
         console.log('This is plan... errr')
-        return res.status(444).send('Failure');
+        return res.send(444);
       } else {
         if (Strpstatus == true) {
           customerId = customerId;
@@ -244,7 +343,7 @@ function postCreditCard(req, res) {
             }
           }, function (err, subscription) {
             if (err) {
-              return res.status(444).send('Failure');
+              return res.send(444);
             } else {
 
               mongo.db.collection('ifg_creditCard').insertOne({
@@ -259,7 +358,7 @@ function postCreditCard(req, res) {
                 console.log('mongo error' + error);
                 //res.send('200');   
               })
-              return res.status(200).send('Sucess');
+              return res.send(200);
             }
 
           });
@@ -270,7 +369,7 @@ function postCreditCard(req, res) {
             email: req.body.email,
           }, function (err, customer) {
             if (err) {
-              return res.status(444).send('Failure');
+              return res.send(444);
             } else {
 
 
@@ -290,7 +389,7 @@ function postCreditCard(req, res) {
                 }
               }, function (err, subscription) {
                 if (err) {
-                  return res.status(444).send('Failure');
+                  return res.send(444);
                 } else {
 
                   mongo.db.collection('ifg_creditCard').insertOne({
@@ -305,7 +404,7 @@ function postCreditCard(req, res) {
                     console.log('mongo error' + error);
                     //res.send('200');   
                   })
-                  return res.status(200).send('Sucess');
+                return res.send(200);
                 }
 
               });
@@ -341,7 +440,7 @@ function postCreditCard(req, res) {
         }
       }, function (err, charge) {
         if (err) {
-          return res.status(444).send('Failure');
+          return res.send(444);
         }
         else {
 
@@ -357,7 +456,7 @@ function postCreditCard(req, res) {
             console.log('mongo error' + error);
             //res.send('200');   
           })
-          return res.status(200).send('Sucess');
+          return res.send(200);
         }
 
       })
@@ -369,7 +468,7 @@ function postCreditCard(req, res) {
         email: req.body.email,
       }, function (err, customer) {
         if (err) {
-          return res.status(444).send('Failure');
+          return res.send(444);
         }
         else {
           stripe.charges.create({
@@ -390,7 +489,7 @@ function postCreditCard(req, res) {
             }
           }, function (err, charge) {
             if (err) {
-              return res.status(444).send('Failure');
+              return res.send(444);
             }
             else {
 
@@ -406,7 +505,7 @@ function postCreditCard(req, res) {
                 console.log('mongo error' + error);
                 //res.send('200');   
               })
-              return res.status(200).send('Sucess');
+              return res.send(200);
             }
 
           })
@@ -416,6 +515,14 @@ function postCreditCard(req, res) {
     }
 
   }
+
+
+    })
+    .catch((err) => {
+      return res.send(444);
+    })
+
+  
 
 
 //Sample code....
