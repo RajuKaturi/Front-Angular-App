@@ -10,20 +10,20 @@ const router = express.Router();
 const request = require('request');
 const mongo = require('../access/mongo');
 
+var stripe = require('stripe')(config.stripe.PUBLIC_KEY);
 
-var stripe = require('stripe')("sk_test_J0awUPn92Yeo4OkqpTEaaEbE")
-
-
-// API for recurly ACH payment
+// API for ACH payment
 router.post('/ach', postAch);
 
-// APi for recurly credit card payment
+// API for CreditCard payment
 router.post('/creditcard', postCreditCard);
 
 module.exports = router;
 
-/////////////
+//API method for ACH payment processing
 function postAch(req, res) {
+
+  let defaultSourceForACH;
   if (req.body.status == true) {
     var plan = stripe.plans.create({
       name: req.body.email,
@@ -42,9 +42,10 @@ function postAch(req, res) {
           if (err) {
             return res.status(444).send('Failure');
           } else {
+            defaultSourceForACH = customer.default_source;
             stripe.customers.verifySource(
               customer.id,
-              customer.default_source,
+              defaultSourceForACH,
               {
                 amounts: [32, 45]
               },
@@ -70,19 +71,10 @@ function postAch(req, res) {
                       if (err) {
                         return res.status(444).send('Failure');
                       } else {
-                        //return res.status(200).send('Sucess');
-                        console.log("...>subscription ...", subscription.id, subscription.customer, subscription.metadata.Email, subscription);
-                        mongo.db.collection('ifg_ach').insertOne({
-                          "_id": subscription.id,
-                          "customerId": subscription.customer,
-                          "emailId": subscription.metadata.Email,
-                          "responseObj": subscription
-                        }).then(() => {
-                          console.log('mongo success');
-                          res.sendStatus(200).json();
+                        new Ach(subscription, defaultSourceForACH).save().then(() => {
+                          return res.status(200).send('Success');
                         }).catch(()=> {
-                          console.log('mongo error' + error);
-                          //res.send('200');   
+                          return res.status(444).send('Failure');
                         })
                       }
 
@@ -108,7 +100,7 @@ function postAch(req, res) {
       else {
         stripe.customers.verifySource(
           customer.id,
-          customer.default_source,
+          defaultSourceForACH,
           {
             amounts: [32, 45]
           }, function (err, bankAccount) {
@@ -135,19 +127,10 @@ function postAch(req, res) {
                   if (err) {
                     return res.status(444).send('Failure');
                   } else {
-
-                    //return res.status(200).send('Sucess');
-                    mongo.db.collection('ifg_ach').insertOne({
-                      "_id": charge.id,
-                      "customerId": charge.customer,
-                      "emailId": charge.metadata.Email,
-                      "responseObj": charge
-                    }).then(() => {
-                      console.log('mongo success');
-                      res.sendStatus(200).json();
+                    new Ach(charge, defaultSourceForACH).save().then(() => {
+                      return res.status(200).send('Success');
                     }).catch(()=> {
-                      console.log('mongo error' + error);
-                      //res.send('200');   
+                      return res.status(444).send('Failure');
                     })
                   }
 
@@ -331,6 +314,7 @@ function postAch(req, res) {
   // }
 }
 
+//API method for CreditCard payment processing
 function postCreditCard(req, res) {
   if (req.body.status == true) {
     var plan = stripe.plans.create({
@@ -369,20 +353,12 @@ function postCreditCard(req, res) {
                 if (err) {
                   return res.status(444).send('Failure');
                 } else {
-                  //return res.status(200).send('Sucess');
-                  mongo.db
-                    .collection('ifg_creditCard').insertOne({
-                    "_id": subscription.id,
-                    "customerId": subscription.customer,
-                    "emailId": subscription.metadata.Email,
-                    "responseObj": subscription
-                  }).then(() => {
-                    console.log('mongo success');
-                    res.sendStatus(200).json();
+                  new CreditCard(subscription).save().then(() => {
+                    return res.status(200).send('Success');
                   }).catch(()=> {
-                    console.log('mongo error' + error);
-                    //res.send('200');   
+                    return res.status(444).send('Failure');
                   })
+
                 }
 
               }
@@ -404,43 +380,35 @@ function postCreditCard(req, res) {
       }
       else {
         stripe.charges.create({
-          amount: req.body.amount * 100,
-          currency: "usd",
-          customer: customer.id,
-          metadata: {
-            userName: req.body.data.card.name,
-            Email: req.body.email,
-            Address1: req.body.data.card.address_line1,
-            Address2: req.body.data.card.address_line2,
-            City: req.body.data.card.address_city,
-            State: req.body.data.card.address_state,
-            Zip: req.body.data.card.address_zip,
-            Country: req.body.data.card.address_country,
-            phoneNumber: req.body.phoneNumber
+            amount: req.body.amount * 100,
+            currency: "usd",
+            customer: customer.id,
+            metadata: {
+              userName: req.body.data.card.name,
+              Email: req.body.email,
+              Address1: req.body.data.card.address_line1,
+              Address2: req.body.data.card.address_line2,
+              City: req.body.data.card.address_city,
+              State: req.body.data.card.address_state,
+              Zip: req.body.data.card.address_zip,
+              Country: req.body.data.card.address_country,
+              phoneNumber: req.body.phoneNumber
 
-          }
-        }, function (err, charge) {
-          if (err) {
-            return res.status(444).send('Failure');
-          }
-          else {
-            //return res.status(200).send('Sucess');
-            mongo.db.collection('ifg_creditCard').insertOne({
-              "_id": charge.id,
-              "customerId": charge.customer,
-              "emailId": charge.metadata.Email,
-              "responseObj": charge
-            }).then(() => {
-              console.log('mongo success');
-              res.sendStatus(200).json();
-            }).catch(()=> {
-              console.log('mongo error' + error); 
-              //res.send('200');   
+            }
+          }, function (err, charge) {
+            if (err) {
+              return res.status(444).send('Failure');
+            }
+            else {
+              new CreditCard(charge).save().then(() => {
+                return res.status(200).send('Success');
+              }).catch(()=> {
+                return res.status(444).send('Failure');
               })
             }
 
           }
-          )
+        )
 
       }
     })

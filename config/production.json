@@ -23,5 +23,8 @@
     "API_KEY": "",
     "transactionURL": "",
     "subscriptionURL": ""
+  },
+  "stripe": {
+    "PUBLIC_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE"
   }
 }

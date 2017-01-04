@@ -24,5 +24,8 @@
     "API_KEY": "7a4a27967d674d6885923933bcef12fd",
     "transactionURL": "https://kids-discover-test.recurly.com/v2/transactions",
     "subscriptionURL": "https://kids-discover-test.recurly.com/v2/subscriptions"
+  },
+  "stripe": {
+    "PUBLIC_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE"
   }
 }
