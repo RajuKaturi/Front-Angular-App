@@ -11,11 +11,11 @@
         "options": null
       },
       "creditCard": {
-        "name": "transactions",
+        "name": "ifg_creditCard",
         "options": null
       },
       "ach": {
-        "name": "transactions",
+        "name": "ifg_ach",
         "options": null
       }
     }
