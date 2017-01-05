@@ -24,6 +24,10 @@
       "Ach": {
         "name": "",
         "options": null
+      },
+      "donations": {
+        "name": "ifg_donations",
+        "options": null
       }
     }
   },

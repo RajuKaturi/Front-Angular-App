@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const request = require('request');
 const mongo = require('../access/mongo');
+const Donations = require('../models/donations');
 
 var stripe = require('stripe')(config.stripe.PUBLIC_KEY);
 
@@ -28,6 +29,7 @@ function postAch(req, res) {
   var Strpstatus;
   var defaultSource;
   let defaultSourceForACH ;
+  let paymentType = 'Bank';
   mongo
     .db
     .collection('ifg_Ach')
@@ -78,7 +80,8 @@ function postAch(req, res) {
                 return res.send(444);
               } else {
 
-                new Ach(subscription, defaultSourceForACH).save().then(() => {
+               // new Ach(subscription, defaultSourceForACH).save().then(() => {
+                  new Donations(subscription, paymentType).save().then(() => {
                    return res.send(200);
                  }).catch(()=> {
                    return res.send(444);
@@ -126,7 +129,8 @@ function postAch(req, res) {
                         if (err) {
                           return res.send(444);
                         } else {
-                          new Ach(subscription, defaultSourceForACH).save().then(() => {
+                          // new Ach(subscription, defaultSourceForACH).save().then(() => {
+                          new Donations(subscription, paymentType).save().then(() => {
                             return res.send(200);
                           }).catch(()=> {
                             return res.send(444);
@@ -170,7 +174,8 @@ function postAch(req, res) {
                     if (err) {
                       return res.send(444);
                     } else {
-                      new Ach(charge, defaultSourceForACH).save().then(() => {
+                      // new Ach(charge, defaultSourceForACH).save().then(() => {
+                      new Donations(charge, paymentType).save().then(() => {
                         return res.send(200);
                       }).catch(()=> {
                         return res.send(444);
@@ -220,7 +225,8 @@ function postAch(req, res) {
                     if (err) {
                       return res.send(444);
                     } else {
-                      new Ach(charge, defaultSourceForACH).save().then(() => {
+                      //new Ach(charge, defaultSourceForACH).save().then(() => {
+                      new Donations(charge, paymentType).save().then(() => {
                         return res.send(200);
                       }).catch(()=> {
                         return res.send(444);
@@ -255,6 +261,7 @@ function postCreditCard(req, res) {
   var customerId;
   var Strpstatus;
   var FinalData;
+  let paymentType = 'Card';
   mongo
     .db
     .collection('ifg_CreditCard')
@@ -311,7 +318,8 @@ function postCreditCard(req, res) {
               return res.send(444);
             } else {
 
-              new CreditCard(subscription).save().then(() => {
+              //new CreditCard(subscription).save().then(() => {
+              new Donations(subscription, paymentType).save().then(() => {
                 return res.send(200);
               }).catch(()=> {
                 return res.send(444);
@@ -348,7 +356,8 @@ function postCreditCard(req, res) {
                 if (err) {
                   return res.send(444);
                 } else {
-                  new CreditCard(subscription).save().then(() => {
+                  //new CreditCard(subscription).save().then(() => {
+                  new Donations(subscription, paymentType).save().then(() => {
                     return res.send(200);
                   }).catch(()=> {
                     return res.send(444);
@@ -391,7 +400,8 @@ function postCreditCard(req, res) {
           return res.send(444);
         }
         else {
-          new CreditCard(charge).save().then(() => {
+          //new CreditCard(charge).save().then(() => {
+          new Donations(charge, paymentType).save().then(() => {
             return res.send(200);
           }).catch(()=> {
             return res.send(444);
@@ -431,7 +441,8 @@ function postCreditCard(req, res) {
               return res.send(444);
             }
             else {
-              new CreditCard(charge).save().then(() => {
+              //new CreditCard(charge).save().then(() => {
+              new Donations(charge, paymentType).save().then(() => {
                 return res.send(200);
               }).catch(()=> {
                 return res.send(444);
