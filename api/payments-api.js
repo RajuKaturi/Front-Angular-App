@@ -22,7 +22,6 @@ router.post('/creditcard', postCreditCard);
 
 module.exports = router;
 
-/////////////
 function postAch(req, res) {
 
   var customerId;

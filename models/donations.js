@@ -18,7 +18,6 @@ function Donations(init, paymentType) {
 
 Donations.prototype.save = save;
 
-//////////
 function save() {
   return new Promise((resolve, reject) => {
     new DonationsDb()

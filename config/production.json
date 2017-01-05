@@ -9,22 +9,22 @@
         "name": "",
         "options": null
       },
-      "creditCard": {
-        "name": "",
-        "options": null
-      },
-      "ach": {
-        "name": "",
-        "options": null
-      },
-      "CreditCard": {
-        "name": "",
-        "options": null
-      },
-      "Ach": {
-        "name": "",
-        "options": null
-      },
+//      "creditCard": {
+//        "name": "",
+//        "options": null
+//      },
+//      "ach": {
+//        "name": "",
+//        "options": null
+//      },
+//      "CreditCard": {
+//        "name": "",
+//        "options": null
+//      },
+//      "Ach": {
+//        "name": "",
+//        "options": null
+//      },
       "donations": {
         "name": "ifg_donations",
         "options": null

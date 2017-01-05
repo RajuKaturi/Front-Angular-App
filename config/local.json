@@ -10,22 +10,23 @@
         "name": "users",
         "options": null
       },
-      "creditCard": {
-        "name": "ifg_creditCard",
-        "options": null
-      },
-      "ach": {
-        "name": "ifg_ach",
-        "options": null
-      },
-      "CreditCard": {
-        "name": "ifg_CreditCard",
-        "options": null
-      },
-      "Ach": {
-        "name": "ifg_Ach",
-        "options": null
-      },
+
+//      "creditCard": {
+//        "name": "ifg_creditCard",
+//        "options": null
+//      },
+//      "ach": {
+//        "name": "ifg_ach",
+//        "options": null
+//      },
+//      "CreditCard": {
+//        "name": "ifg_CreditCard",
+//        "options": null
+//      },
+//      "Ach": {
+//        "name": "ifg_Ach",
+//        "options": null
+//      },
       "donations": {
         "name": "ifg_donations",
         "options": null

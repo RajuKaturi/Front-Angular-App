@@ -2,31 +2,30 @@
   "mongodb": {
     "url": "iad2-c4-1.mongo.objectrocket.com:52208,iad2-c4-0.mongo.objectrocket.com:52208,iad2-c4-2.mongo.objectrocket.com:52208",
     "options": "?replicaSet=83a526439437471bb7c7bcfec2f0a9a0",
-    //"db": "ifg_users",
     "db": "ifg_dev",
-    "username": "devteamolive",
-    "password": "Olive&devs08",
+    "username": "OliveNinjas123",
+    "password": "OlivePwd123",
     "collections": {
       "user": {
         "name": "ifg_leads",
         "options": null
       },
-      "creditCard": {
-        "name": "ifg_creditCard",
-        "options": null
-      },
-      "ach": {
-        "name": "ifg_ach",
-        "options": null
-      },
-      "CreditCard": {
-        "name": "ifg_CreditCard",
-        "options": null
-      },
-      "Ach": {
-        "name": "ifg_Ach",
-        "options": null
-      },
+//      "creditCard": {
+//        "name": "ifg_creditCard",
+//        "options": null
+//      },
+//      "ach": {
+//        "name": "ifg_ach",
+//        "options": null
+//      },
+//      "CreditCard": {
+//        "name": "ifg_CreditCard",
+//        "options": null
+//      },
+//      "Ach": {
+//        "name": "ifg_Ach",
+//        "options": null
+//      },
       "donations": {
         "name": "ifg_donations",
         "options": null

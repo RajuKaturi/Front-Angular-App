@@ -13,7 +13,6 @@ function DonationsDb() {
 
 DonationsDb.prototype.save = save;
 
-//////////
 function save(entity) {
   return new Promise((resolve, reject) => {
     entity._id = new ObjectId();
