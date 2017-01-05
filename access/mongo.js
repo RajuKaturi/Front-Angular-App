@@ -43,7 +43,6 @@ function open() {
         url = `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.url}/${config.mongodb.db}${config.mongodb.options}`;
       }
     }
-    console.log(url);
     MongoClient
       .connect(url)
       .then((db) => {
