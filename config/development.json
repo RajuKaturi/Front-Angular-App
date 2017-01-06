@@ -10,14 +10,7 @@
         "name": "ifg_leads",
         "options": null
       },
-      "creditCard": {
-        "name": "ifg_creditCard",
-        "options": null
-      },
-      "ach": {
-        "name": "ifg_ach",
-        "options": null
-      },
+
       "CreditCard": {
         "name": "ifg_CreditCard",
         "options": null
