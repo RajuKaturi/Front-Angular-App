@@ -18,17 +18,19 @@ router.post('/ach', postAch);
 router.post('/creditcard', postCreditCard);
 module.exports = router;
 
+let paymentData,
+  customerId,
+  stripeStatus,
+  paymentType;
+
 function postAch(req, res) {
   if (Object.keys(req.body).length === 0) {
     return res
       .status(422)
       .json({message: 'INVALID BODY'});
   }
-
-  let paymentData = req.body;
-  let customerId;
-  let stripeStatus;
-  let paymentType = 'Bank';
+    paymentData = req.body;
+    paymentType = 'Bank';
 
   mongo
     .db
@@ -42,22 +44,30 @@ function postAch(req, res) {
         customerId = data[0].customerId;
       }
 
+      function createMetaData(){
+      let metadata={
+          userName: paymentData.data.bank_account.name,
+            Email: paymentData.email,
+            Address1: paymentData.address1,
+            Address2: paymentData.address2,
+            City: paymentData.city,
+            State: paymentData.state,
+            Zip: paymentData.zip,
+            Country: paymentData.country,
+            phoneNumber: paymentData.phoneNumber
+        }
+        return metadata;
+      }
+
       //createCardSubscription
       function createCardSubscription(id) {
         stripe.subscriptions.create({
             customer: id,
             plan: paymentData.data.id,
-            metadata: {
-              userName: paymentData.data.bank_account.name,
-              Email: paymentData.email,
-              Address1: paymentData.address1,
-              Address2: paymentData.address2,
-              City: paymentData.city,
-              State: paymentData.state,
-              Zip: paymentData.zip,
-              Country: paymentData.country,
-              phoneNumber: paymentData.phoneNumber
-            },
+            metadata:createMetaData()
+
+
+
           }, function (err, subscription) {
             if (err) return res.send(444);
             new Donations(subscription, paymentType).save().then(() => {
@@ -74,17 +84,7 @@ function postAch(req, res) {
             amount: paymentData.amount * 100,
             currency: 'usd',
             customer: id,
-            metadata: {
-              userName: paymentData.data.bank_account.name,
-              Email: paymentData.email,
-              Address1: paymentData.address1,
-              Address2: paymentData.address2,
-              City: paymentData.city,
-              State: paymentData.state,
-              Zip: paymentData.zip,
-              Country: paymentData.country,
-              phoneNumber: paymentData.phoneNumber
-            },
+            metadata:createMetaData()
           }, function (err, charge) {
             if (err) return res.send(444);
             new Donations(charge, paymentType).save().then(() => {
@@ -166,24 +166,36 @@ function postCreditCard(req, res) {
       .status(422)
       .json({message: 'INVALID BODY'});
   }
-
-  let paymentData = req.body;
-  let customerId;
-  let stripeStatus;
-  let FinalData;
-  let paymentType = 'Card';
+  paymentData = req.body;
+  paymentType = 'Card';
 
   mongo
     .db
     .collection('ifg_donations')
     .find({'emailId': paymentData.email}).toArray()
     .then((data) => {
-      FinalData = data;
-      if (FinalData == '') {
+      if (data == '') {
         stripeStatus = false;
       } else {
         stripeStatus = true;
-        customerId = FinalData[0].customerId;
+        customerId = data[0].customerId;
+      }
+
+      //createMetaData
+      function createMetaData(){
+        let metadata= {
+          userName: paymentData.data.card.name,
+          Email: paymentData.email,
+          Address1: paymentData.data.card.address_line1,
+          Address2: paymentData.data.card.address_line2,
+          City: paymentData.data.card.address_city,
+          State: paymentData.data.card.address_state,
+          Zip: paymentData.data.card.address_zip,
+          Country: paymentData.data.card.address_country,
+          phoneNumber: paymentData.phoneNumber
+        }
+        return metadata;
+
       }
 
       //createCardCharge
@@ -192,17 +204,9 @@ function postCreditCard(req, res) {
           amount: paymentData.amount * 100,
           currency: 'usd',
           customer: id,
-          metadata: {
-            userName: paymentData.data.card.name,
-            Email: paymentData.email,
-            Address1: paymentData.data.card.address_line1,
-            Address2: paymentData.data.card.address_line2,
-            City: paymentData.data.card.address_city,
-            State: paymentData.data.card.address_state,
-            Zip: paymentData.data.card.address_zip,
-            Country: paymentData.data.card.address_country,
-            phoneNumber: paymentData.phoneNumber
-          }
+          metadata:createMetaData()
+
+
         }, function (err, charge) {
           if (err) return res.send(444);
           new Donations(charge, paymentType)
@@ -220,17 +224,7 @@ function postCreditCard(req, res) {
         stripe.subscriptions.create({
           customer: id,
           plan: paymentData.data.id,
-          metadata: {
-            userName: paymentData.data.card.name,
-            Email: paymentData.email,
-            Address1: paymentData.data.card.address_line1,
-            Address2: paymentData.data.card.address_line2,
-            City: paymentData.data.card.address_city,
-            State: paymentData.data.card.address_state,
-            Zip: paymentData.data.card.address_zip,
-            Country: paymentData.data.card.address_country,
-            phoneNumber: paymentData.phoneNumber
-          }
+          metadata:createMetaData()
         }, function (err, subscription) {
           if (err) return res.send(444);
           new Donations(subscription, paymentType).save().then(() => {
