@@ -18,12 +18,18 @@ router.post('/ach', postAch);
 router.post('/creditcard', postCreditCard);
 module.exports = router;
 
-
 function postAch(req, res) {
+  if (Object.keys(req.body).length === 0) {
+    return res
+      .status(422)
+      .json({message: 'INVALID BODY'});
+  }
+
   let paymentData = req.body;
   let customerId;
   let stripeStatus;
   let paymentType = 'Bank';
+
   mongo
     .db
     .collection('ifg_donations')
@@ -35,6 +41,7 @@ function postAch(req, res) {
         stripeStatus = true;
         customerId = data[0].customerId;
       }
+
       //createCardSubscription
       function createCardSubscription(id) {
         stripe.subscriptions.create({
@@ -58,13 +65,12 @@ function postAch(req, res) {
             }).catch(() => {
               return res.send(444);
             })
-          }
-        );
+          });
       }
 
       //createCardCharge
       function createCardCharge(id){
-          stripe.charges.create({
+        stripe.charges.create({
             amount: paymentData.amount * 100,
             currency: 'usd',
             customer: id,
@@ -86,11 +92,10 @@ function postAch(req, res) {
             }).catch(() => {
               return res.send(444);
             })
-          }
-        )
-
+          });
       }
-      //achSubscriptionExsitingcustomer
+
+      //achSubscription for Exsitingcustomer
       if (paymentData.status == true) {
         let plan = stripe.plans.create({
           name: paymentData.email,
@@ -103,7 +108,7 @@ function postAch(req, res) {
           if (stripeStatus === true) {
             createCardSubscription(customerId);
           } else {
-            //achSubscriptionNewCustomer
+            //achSubscription for NewCustomer
             stripe.customers.create({
               source: paymentData.data.id,
               email: paymentData.email,
@@ -120,18 +125,17 @@ function postAch(req, res) {
                   function (err, bankAccount) {
                     if (err) return res.send(444);
                     createCardSubscription(bankAccount.customer);
-
                   });
-              }
+                }
             });
           }
         });
       } else {
         if (stripeStatus == true) {
-            //achChargeExistingCustomer
+          //achCharge for ExistingCustomer
           createCardCharge(customerId);
         } else {
-          //achChargeNewCustomer
+          //achCharge for NewCustomer
           stripe.customers.create({
             source: paymentData.data.id,
             email: paymentData.email,
@@ -146,7 +150,7 @@ function postAch(req, res) {
                 if (err) return res.send(444);
                 createCardCharge(bankAccount.customer);
               });
-          })
+          });
         }
       }
     })
@@ -157,11 +161,18 @@ function postAch(req, res) {
 
 
 function postCreditCard(req, res) {
+  if (Object.keys(req.body).length === 0) {
+    return res
+      .status(422)
+      .json({message: 'INVALID BODY'});
+  }
+
   let paymentData = req.body;
   let customerId;
   let stripeStatus;
   let FinalData;
   let paymentType = 'Card';
+
   mongo
     .db
     .collection('ifg_donations')
@@ -174,6 +185,7 @@ function postCreditCard(req, res) {
         stripeStatus = true;
         customerId = FinalData[0].customerId;
       }
+
       //createCardCharge
       function createCardCharge(id) {
         stripe.charges.create({
@@ -190,7 +202,6 @@ function postCreditCard(req, res) {
             Zip: paymentData.data.card.address_zip,
             Country: paymentData.data.card.address_country,
             phoneNumber: paymentData.phoneNumber
-
           }
         }, function (err, charge) {
           if (err) return res.send(444);
@@ -201,10 +212,9 @@ function postCreditCard(req, res) {
             }).catch(() => {
             return res.send(444);
           })
-
-
         })
       }
+
       //createCardSubscription
       function createCardSubscription(id) {
         stripe.subscriptions.create({
@@ -229,11 +239,9 @@ function postCreditCard(req, res) {
             return res.send(444);
           })
         });
-
-
       }
 
-        //cardSubscriptionExsitingcustomer
+      //cardSubscription for Exsitingcustomer
       if (paymentData.status == true) {
         let plan = stripe.plans.create({
           name: paymentData.email,
@@ -246,43 +254,32 @@ function postCreditCard(req, res) {
           if (stripeStatus == true) {
             customerId = customerId;
             createCardSubscription(customerId);
-
           } else {
-            //cardSubscriptionNewcustomer
+            //cardSubscription for Newcustomer
             stripe.customers.create({
               source: paymentData.data.id,
               email: paymentData.email,
             }, function (err, customer) {
               if (err) return res.send(444);
               createCardSubscription(customer.id);
-
             });
-
           }
-
         });
-
-
       } else {
-        //cardChargeExsitingcustomer
+        //cardCharge for Exsitingcustomer
         if (stripeStatus == true) {
           createCardCharge(customerId);
-
         } else {
-          //cardChargeNewcustomer
+          //cardCharge for Newcustomer
           stripe.customers.create({
             source: paymentData.data.id,
             email: paymentData.email,
           }, function (err, customer) {
             if (err) return res.send(444);
             createCardCharge(customer.id);
-
           })
         }
-
       }
-
-
     })
     .catch((err) => {
       return res.send(444);
