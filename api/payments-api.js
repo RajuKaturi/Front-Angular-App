@@ -23,11 +23,9 @@ module.exports = router;
 
 
 function postAch(req, res) {
-
   let paymentData = req.body;
   let customerId;
   let stripeStatus;
-  let defaultSource;
   let paymentType = 'Bank';
   mongo
     .db
@@ -39,7 +37,6 @@ function postAch(req, res) {
       } else {
         stripeStatus = true;
         customerId = data[0].customerId;
-        defaultSource = data[0].defaultSourceForACH;
       }
       function bankAccount(id) {
         stripe.subscriptions.create({
@@ -65,10 +62,7 @@ function postAch(req, res) {
             })
           }
         );
-
-
       }
-
 
       if (paymentData.status == true) {
         let plan = stripe.plans.create({
@@ -89,7 +83,6 @@ function postAch(req, res) {
               if (err) {
                 return res.send(444);
               } else {
-
                 stripe.customers.verifySource(
                   customer.id,
                   customer.default_source,
@@ -98,38 +91,13 @@ function postAch(req, res) {
                   },
                   function (err, bankAccount) {
                     if (err) return res.send(444);
-                    stripe.subscriptions.create({
-                        customer: bankAccount.customer,
-                        plan: paymentData.data.id,
-                        metadata: {
-                          userName: paymentData.data.bank_account.name,
-                          Email: paymentData.email,
-                          Address1: paymentData.address1,
-                          Address2: paymentData.address2,
-                          City: paymentData.city,
-                          State: paymentData.state,
-                          Zip: paymentData.zip,
-                          Country: paymentData.country,
-                          phoneNumber: paymentData.phoneNumber
-                        },
-                      }, function (err, subscription) {
-                        if (err) return res.send(444);
-                        new Donations(subscription, paymentType).save().then(() => {
-                          return res.send(200);
-                        }).catch(() => {
-                          return res.send(444);
-                        })
-                      }
-                    );
+                    bankAccount(customerId);
 
                   });
               }
             });
-
           }
-
         });
-
       } else {
         if (stripeStatus == true) {
 
@@ -157,7 +125,6 @@ function postAch(req, res) {
               })
             }
           )
-
         } else {
 
           stripe.customers.create({
@@ -246,9 +213,11 @@ function postCreditCard(req, res) {
           }
         }, function (err, charge) {
           if (err) return res.send(444);
-          new Donations(charge, paymentType).save().then(() => {
-            return res.send(200);
-          }).catch(() => {
+          new Donations(charge, paymentType)
+            .save()
+            .then(() => {
+              return res.send(200);
+            }).catch(() => {
             return res.send(444);
           })
 
@@ -256,8 +225,7 @@ function postCreditCard(req, res) {
         })
       }
 
-      function creditcardSubscription(id) {
-
+      function creditCardSubscription(id) {
         stripe.subscriptions.create({
           customer: id,
           plan: paymentData.data.id,
@@ -296,7 +264,7 @@ function postCreditCard(req, res) {
           if (err) return res.send(444);
           if (stripeStatus == true) {
             customerId = customerId;
-            creditcardSubscription(customerId);
+            creditCardSubscription(customerId);
 
           } else {
             stripe.customers.create({
@@ -304,7 +272,7 @@ function postCreditCard(req, res) {
               email: paymentData.email,
             }, function (err, customer) {
               if (err) return res.send(444);
-              creditcardSubscription(customer.id);
+              creditCardSubscription(customer.id);
 
             });
 
