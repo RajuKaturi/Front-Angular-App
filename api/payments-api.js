@@ -24,15 +24,15 @@ module.exports = router;
 
 function postAch(req, res) {
 
+  let paymentData = req.body;
   let customerId;
   let stripeStatus;
   let defaultSource;
-  let defaultSourceForACH;
   let paymentType = 'Bank';
   mongo
     .db
     .collection('ifg_donations')
-    .find({'emailId': req.body.email}).toArray()
+    .find({'emailId': paymentData.email}).toArray()
     .then((data) => {
       if (data == '') {
         stripeStatus = false;
@@ -44,17 +44,17 @@ function postAch(req, res) {
         function bankAccount(id){
           stripe.subscriptions.create({
               customer:id,
-              plan: req.body.data.id,
+              plan: paymentData.data.id,
               metadata: {
-                userName: req.body.data.bank_account.name,
-                Email: req.body.email,
-                Address1: req.body.address1,
-                Address2: req.body.address2,
-                City: req.body.city,
-                State: req.body.state,
-                Zip: req.body.zip,
-                Country: req.body.country,
-                phoneNumber: req.body.phoneNumber
+                userName: paymentData.data.bank_account.name,
+                Email: paymentData.email,
+                Address1: paymentData.address1,
+                Address2: paymentData.address2,
+                City: paymentData.city,
+                State: paymentData.state,
+                Zip: paymentData.zip,
+                Country: paymentData.country,
+                phoneNumber: paymentData.phoneNumber
               },
             }, function (err, subscription) {
               if (err) return res.send(444);
@@ -71,21 +71,21 @@ function postAch(req, res) {
 
 
 
-      if (req.body.status == true) {
+      if (paymentData.status == true) {
         let plan = stripe.plans.create({
-          name: req.body.email,
-          id: req.body.data.id,
+          name: paymentData.email,
+          id: paymentData.data.id,
           interval: 'day',
           currency: 'usd',
-          amount: req.body.amount * 100,
+          amount: paymentData.amount * 100,
         }, function (err, plan) {
           if (err) return res.send(444);
           if (stripeStatus === true) {
             bankAccount(customerId);
           } else {
             stripe.customers.create({
-              source: req.body.data.id,
-              email: req.body.email,
+              source: paymentData.data.id,
+              email: paymentData.email,
             }, function (err, customer) {
               if (err) {
                 return res.send(444);
@@ -101,17 +101,17 @@ function postAch(req, res) {
                     if (err) return res.send(444);
                     stripe.subscriptions.create({
                         customer: bankAccount.customer,
-                        plan: req.body.data.id,
+                        plan: paymentData.data.id,
                         metadata: {
-                          userName: req.body.data.bank_account.name,
-                          Email: req.body.email,
-                          Address1: req.body.address1,
-                          Address2: req.body.address2,
-                          City: req.body.city,
-                          State: req.body.state,
-                          Zip: req.body.zip,
-                          Country: req.body.country,
-                          phoneNumber: req.body.phoneNumber
+                          userName: paymentData.data.bank_account.name,
+                          Email: paymentData.email,
+                          Address1: paymentData.address1,
+                          Address2: paymentData.address2,
+                          City: paymentData.city,
+                          State: paymentData.state,
+                          Zip: paymentData.zip,
+                          Country: paymentData.country,
+                          phoneNumber: paymentData.phoneNumber
                         },
                       }, function (err, subscription) {
                         if (err) return res.send(444);
@@ -135,19 +135,19 @@ function postAch(req, res) {
         if (stripeStatus == true) {
 
           stripe.charges.create({
-              amount: req.body.amount * 100,
+              amount: paymentData.amount * 100,
               currency: 'usd',
               customer: customerId,
               metadata: {
-                userName: req.body.data.bank_account.name,
-                Email: req.body.email,
-                Address1: req.body.address1,
-                Address2: req.body.address2,
-                City: req.body.city,
-                State: req.body.state,
-                Zip: req.body.zip,
-                Country: req.body.country,
-                phoneNumber: req.body.phoneNumber
+                userName: paymentData.data.bank_account.name,
+                Email: paymentData.email,
+                Address1: paymentData.address1,
+                Address2: paymentData.address2,
+                City: paymentData.city,
+                State: paymentData.state,
+                Zip: paymentData.zip,
+                Country: paymentData.country,
+                phoneNumber: paymentData.phoneNumber
               },
             }, function (err, charge) {
               if (err) return res.send(444);
@@ -162,8 +162,8 @@ function postAch(req, res) {
         } else {
 
           stripe.customers.create({
-            source: req.body.data.id,
-            email: req.body.email,
+            source: paymentData.data.id,
+            email: paymentData.email,
           }, function (err, customer) {
             if (err) return res.send(444);
             stripe.customers.verifySource(
@@ -174,19 +174,19 @@ function postAch(req, res) {
               }, function (err, bankAccount) {
                 if (err) return res.send(444);
                 stripe.charges.create({
-                    amount: req.body.amount * 100,
+                    amount: paymentData.amount * 100,
                     currency: 'usd',
                     customer: bankAccount.customer,
                     metadata: {
-                      userName: req.body.data.bank_account.name,
-                      Email: req.body.email,
-                      Address1: req.body.address1,
-                      Address2: req.body.address2,
-                      City: req.body.city,
-                      State: req.body.state,
-                      Zip: req.body.zip,
-                      Country: req.body.country,
-                      phoneNumber: req.body.phoneNumber
+                      userName: paymentData.data.bank_account.name,
+                      Email: paymentData.email,
+                      Address1: paymentData.address1,
+                      Address2: paymentData.address2,
+                      City: paymentData.city,
+                      State: paymentData.state,
+                      Zip: paymentData.zip,
+                      Country: paymentData.country,
+                      phoneNumber: paymentData.phoneNumber
                     },
                   }, function (err, charge) {
                     if (err) return res.send(444);
@@ -210,6 +210,7 @@ function postAch(req, res) {
 
 
 function postCreditCard(req, res) {
+  let paymentData = req.body;
   let customerId;
   let stripeStatus;
   let FinalData;
@@ -217,7 +218,7 @@ function postCreditCard(req, res) {
   mongo
     .db
     .collection('ifg_donations')
-    .find({'emailId': req.body.email}).toArray()
+    .find({'emailId': paymentData.email}).toArray()
     .then((data) => {
       FinalData = data;
       if (FinalData == '') {
@@ -229,19 +230,19 @@ function postCreditCard(req, res) {
 
       function cardSingle(id) {
         stripe.charges.create({
-          amount: req.body.amount * 100,
+          amount: paymentData.amount * 100,
           currency: 'usd',
           customer: id,
           metadata: {
-            userName: req.body.data.card.name,
-            Email: req.body.email,
-            Address1: req.body.data.card.address_line1,
-            Address2: req.body.data.card.address_line2,
-            City: req.body.data.card.address_city,
-            State: req.body.data.card.address_state,
-            Zip: req.body.data.card.address_zip,
-            Country: req.body.data.card.address_country,
-            phoneNumber: req.body.phoneNumber
+            userName: paymentData.data.card.name,
+            Email: paymentData.email,
+            Address1: paymentData.data.card.address_line1,
+            Address2: paymentData.data.card.address_line2,
+            City: paymentData.data.card.address_city,
+            State: paymentData.data.card.address_state,
+            Zip: paymentData.data.card.address_zip,
+            Country: paymentData.data.card.address_country,
+            phoneNumber: paymentData.phoneNumber
 
           }
         }, function (err, charge) {
@@ -260,17 +261,17 @@ function postCreditCard(req, res) {
 
         stripe.subscriptions.create({
           customer: id,
-          plan: req.body.data.id,
+          plan: paymentData.data.id,
           metadata: {
-            userName: req.body.data.card.name,
-            Email: req.body.email,
-            Address1: req.body.data.card.address_line1,
-            Address2: req.body.data.card.address_line2,
-            City: req.body.data.card.address_city,
-            State: req.body.data.card.address_state,
-            Zip: req.body.data.card.address_zip,
-            Country: req.body.data.card.address_country,
-            phoneNumber: req.body.phoneNumber
+            userName: paymentData.data.card.name,
+            Email: paymentData.email,
+            Address1: paymentData.data.card.address_line1,
+            Address2: paymentData.data.card.address_line2,
+            City: paymentData.data.card.address_city,
+            State: paymentData.data.card.address_state,
+            Zip: paymentData.data.card.address_zip,
+            Country: paymentData.data.card.address_country,
+            phoneNumber: paymentData.phoneNumber
           }
         }, function (err, subscription) {
           if (err) return res.send(444);
@@ -285,13 +286,13 @@ function postCreditCard(req, res) {
       }
 
 
-      if (req.body.status == true) {
+      if (paymentData.status == true) {
         let plan = stripe.plans.create({
-          name: req.body.email,
-          id: req.body.data.id,
+          name: paymentData.email,
+          id: paymentData.data.id,
           interval: 'day',
           currency: 'usd',
-          amount: req.body.amount * 100,
+          amount: paymentData.amount * 100,
         }, function (err, plan) {
           if (err) return res.send(444);
           if (stripeStatus == true) {
@@ -300,8 +301,8 @@ function postCreditCard(req, res) {
 
           } else {
             stripe.customers.create({
-              source: req.body.data.id,
-              email: req.body.email,
+              source: paymentData.data.id,
+              email: paymentData.email,
             }, function (err, customer) {
               if (err) return res.send(444);
               creditcardSubscription(customer.id);
@@ -320,8 +321,8 @@ function postCreditCard(req, res) {
 
         } else {
           stripe.customers.create({
-            source: req.body.data.id,
-            email: req.body.email,
+            source: paymentData.data.id,
+            email: paymentData.email,
           }, function (err, customer) {
             if (err) return res.send(444);
             cardSingle(customer.id);
