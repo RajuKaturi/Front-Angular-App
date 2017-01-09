@@ -24,6 +24,7 @@ let paymentData,
   paymentType;
 
 function postAch(req, res) {
+  //Empty Request
   if (Object.keys(req.body).length === 0) {
     return res
       .status(422)
@@ -32,6 +33,7 @@ function postAch(req, res) {
     paymentData = req.body;
     paymentType = 'Bank';
 
+  //Check the customer in mongodb
   mongo
     .db
     .collection('ifg_donations')
@@ -44,6 +46,7 @@ function postAch(req, res) {
         customerId = data[0].customerId;
       }
 
+      //createMetaData
       function createMetaData(){
       let metadata={
           userName: paymentData.data.bank_account.name,
@@ -65,9 +68,6 @@ function postAch(req, res) {
             customer: id,
             plan: paymentData.data.id,
             metadata:createMetaData()
-
-
-
           }, function (err, subscription) {
             if (err) return res.send(444);
             new Donations(subscription, paymentType).save().then(() => {
@@ -161,6 +161,7 @@ function postAch(req, res) {
 
 
 function postCreditCard(req, res) {
+  //Empty Request
   if (Object.keys(req.body).length === 0) {
     return res
       .status(422)
@@ -169,6 +170,7 @@ function postCreditCard(req, res) {
   paymentData = req.body;
   paymentType = 'Card';
 
+  //Check the customer in mongodb
   mongo
     .db
     .collection('ifg_donations')
