@@ -11,7 +11,7 @@ const request = require('request');
 const mongo = require('../access/mongo');
 const Donations = require('../models/donations');
 
-let stripe = require('stripe')(config.stripe.PUBLIC_KEY);
+let stripe = require('stripe')(config.stripe.PUBLIC_KEY)
 
 // API for  ACH payment
 router.post('/ach', postAch);
@@ -25,14 +25,14 @@ let paymentData,
   metadata,
   paymentType;
 
-function postAch(req, res) {
-  //Empty Request
-  if (Object.keys(req.body).length === 0) {
-    return res
+function postAch(request, response) {
+  //Empty Request,//200 code is for sucess,//444 code is for failure
+  if (Object.keys(request.body).length === 0) {
+    return response
       .status(422)
       .json({message: 'INVALID BODY'});
   }
-  paymentData = req.body;
+  paymentData = request.body;
   paymentType = 'Bank';
 
   //Check the customer in mongodb
@@ -52,16 +52,16 @@ function postAch(req, res) {
       function createMetaData() {
         metadata = {
           userName: paymentData.data.bank_account.name,
-          Email: paymentData.email,
-          Address1: paymentData.address1,
-          Address2: paymentData.address2,
-          City: paymentData.city,
-          State: paymentData.state,
-          Zip: paymentData.zip,
-          Country: paymentData.country,
+          email: paymentData.email,
+          address1: paymentData.address1,
+          address2: paymentData.address2,
+          city: paymentData.city,
+          state: paymentData.state,
+          zip: paymentData.zip,
+          country: paymentData.country,
           phoneNumber: paymentData.phoneNumber,
-          firstName: paymentData.fName,
-          lastName: paymentData.lName
+          firstName: paymentData.donarFirstName,
+          lastName: paymentData.donarLastName
         };
         return metadata;
       }
@@ -73,13 +73,13 @@ function postAch(req, res) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new Donations(subscription, paymentType, paymentData.fName, paymentData.lName).save().then(() => {
-            return res.send(200);
+          new Donations(subscription, paymentType, paymentType.donarFirstName, paymentData.donarLastName).save().then(() => {
+            return response.send(200);
           }).catch(() => {
-            return res.send(444);
+            return response.send(444);
           })
         }).catch(() => {
-          return res.send(444);
+          return response.send(444);
         })
       }
 
@@ -92,13 +92,13 @@ function postAch(req, res) {
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new Donations(charge, paymentType, paymentData.fName, paymentData.lName).save().then(() => {
-            return res.send(200);
+          new Donations(charge, paymentType, paymentType.donarFirstName, paymentData.donarLastName).save().then(() => {
+            return response.send(200);
           }).catch(() => {
-            return res.send(444);
+            return response.send(444);
           })
         }).catch(() => {
-          return res.send(444);
+          return response.send(444);
         })
       }
 
@@ -126,14 +126,14 @@ function postAch(req, res) {
                 }).then(bankAccount => {
                 createAchSubscription(bankAccount.customer);
               }).catch(() => {
-                return res.send(444);
+                return response.send(444);
               })
             }).catch(() => {
-              return res.send(444);
+              return response.send(444);
             })
           }
         }).catch(() => {
-          return res.send(444);
+          return response.send(444);
         });
       } else {
         if (stripeStatus == true) {
@@ -153,28 +153,28 @@ function postAch(req, res) {
               }).then(bankAccount => {
               createAchCharge(bankAccount.customer);
             }).catch(() => {
-              return res.send(444);
+              return response.send(444);
             })
           }).catch(() => {
-            return res.send(444);
+            return response.send(444);
           })
         }
       }
     })
     .catch(() => {
-      return res.send(444);
+      return response.send(444);
     })
 }
 
 
-function postCreditCard(req, res) {
-  //Empty Request
-  if (Object.keys(req.body).length === 0) {
-    return res
+function postCreditCard(request, response) {
+  //Empty Request,//200 code is for sucess,//444 code is for failure
+  if (Object.keys(request.body).length === 0) {
+    return response
       .status(422)
       .json({message: 'INVALID BODY'});
   }
-  paymentData = req.body;
+  paymentData = request.body;
   paymentType = 'Card';
 
   //Check the customer in mongodb
@@ -195,15 +195,15 @@ function postCreditCard(req, res) {
       function createMetaData() {
         metadata = {
           userName: paymentData.data.card.name,
-          Email: paymentData.email,
-          Address1: paymentData.data.card.address_line1,
-          Address2: paymentData.data.card.address_line2,
-          City: paymentData.data.card.address_city,
-          State: paymentData.data.card.address_state,
-          Zip: paymentData.data.card.address_zip,
-          Country: paymentData.data.card.address_country,
-          firstName: paymentData.fName,
-          lastName: paymentData.lName,
+          email: paymentData.email,
+          address1: paymentData.data.card.address_line1,
+          address2: paymentData.data.card.address_line2,
+          city: paymentData.data.card.address_city,
+          state: paymentData.data.card.address_state,
+          zip: paymentData.data.card.address_zip,
+          country: paymentData.data.card.address_country,
+          firstName: paymentData.donarFirstName,
+          lastName: paymentData.donarLastName,
           phoneNumber: paymentData.phoneNumber
         };
         return metadata;
@@ -216,13 +216,13 @@ function postCreditCard(req, res) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new Donations(subscription, paymentType, paymentData.fName, paymentData.lName).save().then(() => {
-            return res.send(200);
+          new Donations(subscription, paymentType, paymentData.donarFirstName, paymentData.donarLastName).save().then(() => {
+            return response.send(200);
           }).catch(() => {
-            return res.send(444);
+            return response.send(444);
           })
         }).catch(() => {
-          return res.send(444);
+          return response.send(444);
         })
       }
 
@@ -234,13 +234,13 @@ function postCreditCard(req, res) {
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new Donations(charge, paymentType, paymentData.fName, paymentData.lName).save().then(() => {
-            return res.send(200);
+          new Donations(charge, paymentType, paymentType.donarFirstName, paymentData.donarLastName).save().then(() => {
+            return response.send(200);
           }).catch(() => {
-            return res.send(444);
+            return response.send(444);
           })
         }).catch(() => {
-          return res.send(444);
+          return response.send(444);
         })
       }
 
@@ -263,11 +263,11 @@ function postCreditCard(req, res) {
             }).then(customer => {
               createCardSubscription(customer.id);
             }).catch(() => {
-              return res.send(444);
+              return response.send(444);
             })
           }
         }).catch(() => {
-          return res.send(444);
+          return response.send(444);
         });
       } else {
         //cardCharge for Exsitingcustomer
@@ -281,12 +281,12 @@ function postCreditCard(req, res) {
           }).then(customer => {
             createCardCharge(customer.id);
           }).catch(() => {
-            return res.send(444);
+            return response.send(444);
           })
         }
       }
     })
     .catch(() => {
-      return res.send(444);
+      return response.send(444);
     });
 }
