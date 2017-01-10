@@ -8,7 +8,11 @@ module.exports = Donations;
 function Donations(init, paymentType) {
   this._id = (init._id) ? new ObjectId(init._id) : null;
   this.pushToActOn = Boolean(init.pushToActOn || false);
-  this.pushToSalesForce = Boolean(init.pushToSalesForce || false);
+ // this.pushToSalesForce = Boolean(init.pushToSalesForce || false);
+  this.pushContactToSalesForce = Boolean(init.pushContactToSalesForce || false); 
+  this.pushDonationToSalesForce = Boolean(init.pushDonationToSalesForce || false);
+  this.firstName = String(init.metadata.firstName || '');
+  this.lastName = String(init.metadata.lastName || '');
   this.customerId = String(init.customer || '');
   this.emailId = String(init.metadata.Email || '');
   this.paymentType = paymentType;
