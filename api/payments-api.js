@@ -52,13 +52,13 @@ function postAch(request, response) {
       function createMetaData() {
         metadata = {
           userName: paymentData.data.bank_account.name,
-          Email: paymentData.email,
-          Address1: paymentData.address1,
-          Address2: paymentData.address2,
-          City: paymentData.city,
-          State: paymentData.state,
-          Zip: paymentData.zip,
-          Country: paymentData.country,
+          email: paymentData.email,
+          address1: paymentData.address1,
+          address2: paymentData.address2,
+          city: paymentData.city,
+          state: paymentData.state,
+          zip: paymentData.zip,
+          country: paymentData.country,
           phoneNumber: paymentData.phoneNumber,
           firstName: paymentData.donarFirstName,
           lastName: paymentData.donarLastName
@@ -180,7 +180,7 @@ function postCreditCard(request, response) {
   mongo
     .db
     .collection('ifg_donations')
-    .find({'emailId': paymentData.ema}).toArray()
+    .find({'emailId': paymentData.email}).toArray()
     .then((data) => {
       if (data == '') {
         stripeStatus = false;
@@ -193,13 +193,13 @@ function postCreditCard(request, response) {
       function createMetaData() {
         metadata = {
           userName: paymentData.data.card.name,
-          Email: paymentData.email,
-          Address1: paymentData.data.card.address_line1,
-          Address2: paymentData.data.card.address_line2,
-          City: paymentData.data.card.address_city,
-          State: paymentData.data.card.address_state,
-          Zip: paymentData.data.card.address_zip,
-          Country: paymentData.data.card.address_country,
+          email: paymentData.email,
+          address1: paymentData.data.card.address_line1,
+          address2: paymentData.data.card.address_line2,
+          aity: paymentData.data.card.address_city,
+          state: paymentData.data.card.address_state,
+          zip: paymentData.data.card.address_zip,
+          country: paymentData.data.card.address_country,
           firstName: paymentData.donarFirstName,
           lastName: paymentData.donarLastName,
           phoneNumber: paymentData.phoneNumber
