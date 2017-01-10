@@ -31,8 +31,7 @@
     "subscriptionURL": ""
   },
   "stripe": {
-    "PUBLIC_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
-    "LIVE_KEY": "pk_live_j0OP0LqArErmpKaX86alPTVs ",
+    "STRIPE_KEY": "sk_live_l2KS3QMFgGvIOkZu8ya3TJUA",
     "currency": "usd",
     "interval":"day"
   }

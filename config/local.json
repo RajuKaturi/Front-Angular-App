@@ -39,8 +39,7 @@
     "subscriptionURL": "https://kids-discover-test.recurly.com/v2/subscriptions"
   },
   "stripe": {
-    "PUBLIC_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
-    "LIVE_KEY": "pk_live_j0OP0LqArErmpKaX86alPTVs ",
+    "STRIPE_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
     "currency": "usd",
     "interval":"day"
   }
