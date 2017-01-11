@@ -1,7 +1,7 @@
 Server Project
 
 # Prerequisites
-* You must have docer installed locally for testing: https://www.docker.com/products/overview
+* You must have docker installed locally for testing: https://www.docker.com/products/overview
 
 # Quick Start
 1. npm install
