@@ -1,23 +1,25 @@
 'use strict';
 
-const Ach = require('../models/ach');
-const base64 = require('base-64');
-const config = require('../access/config');
-const CreditCard = require('../models/credit-card');
-const encodedKey = base64.encode(config.recurly.API_KEY);
-const express = require('express');
-const router = express.Router();
-const request = require('request');
-const mongo = require('../access/mongo');
-const Donations = require('../models/donations');
+const ACH = require('../models/ach');
+const BASE64 = require('base-64');
+const CONFIG = require('../access/config');
+const CREDITCARD = require('../models/credit-card');
+const ENCODEKEY = BASE64.encode(CONFIG.recurly.API_KEY);
+const EXPRESS = require('express');
+const ROUTER = EXPRESS.Router();
+const REQUEST = require('request');
+const MONGO = require('../access/mongo');
+const DONATIONS = require('../models/donations');
 
-let stripe = require('stripe')(config.stripe.STRIPE_KEY)
+let stripe = require('stripe')(CONFIG.stripe.STRIPE_KEY),
+  currency = CONFIG.stripe.currency,
+  interval = CONFIG.stripe.interval
 
 // API for  ACH payment
-router.post('/ach', postAch);
+ROUTER.post('/ach', postAch);
 // APi for  credit card payment
-router.post('/creditcard', postCreditCard);
-module.exports = router;
+ROUTER.post('/creditcard', postCreditCard);
+module.exports = ROUTER;
 
 let paymentData,
   customerId,
@@ -26,7 +28,10 @@ let paymentData,
   paymentType;
 
 function postAch(request, response) {
-  //Empty Request,//200 code is for sucess,//444 code is for failure
+  //Empty Request,
+  // 200 code is for sucess,
+  // 444 code is for failure,
+  //Payment gateway accepting amount in cents that's why we are multiplied by 100
   if (Object.keys(request.body).length === 0) {
     return response
       .status(422)
@@ -35,8 +40,8 @@ function postAch(request, response) {
   paymentData = request.body;
   paymentType = 'Bank';
 
-  //Check the customer in mongodb
-  mongo
+  //Check the customer in MONGOdb
+  MONGO
     .db
     .collection('ifg_donations')
     .find({'emailId': paymentData.email}).toArray()
@@ -52,12 +57,12 @@ function postAch(request, response) {
         metadata = {
           userName: paymentData.data.bank_account.name,
           Email: paymentData.email,
-          Address1: paymentData.address1,
-          Address2: paymentData.address2,
-          City: paymentData.city,
-          State: paymentData.state,
-          Zip: paymentData.zip,
-          Country: paymentData.country,
+          address1: paymentData.address1,
+          address2: paymentData.address2,
+          city: paymentData.city,
+          state: paymentData.state,
+          zip: paymentData.zip,
+          country: paymentData.country,
           phoneNumber: paymentData.phoneNumber,
           firstName: paymentData.donorFirstName,
           lastName: paymentData.donorLastName
@@ -72,7 +77,7 @@ function postAch(request, response) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new Donations(subscription, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+          new DONATIONS(subscription, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
@@ -81,7 +86,6 @@ function postAch(request, response) {
           return response.send(444);
         })
       }
-
 
       //createAchCharge
       function createAchCharge(id) {
@@ -91,7 +95,7 @@ function postAch(request, response) {
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new Donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+          new DONATIONS(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
@@ -101,13 +105,13 @@ function postAch(request, response) {
         })
       }
 
-      //achSubscription for Exsitingcustomer
+      //achSubscription for Existingcustomer
       if (paymentData.status == true) {
         let plan = stripe.plans.create({
           name: paymentData.email,
           id: paymentData.data.id,
-          interval: 'day',
-          currency: 'usd',
+          interval: interval,
+          currency: currency,
           amount: paymentData.amount * 100,
         }).then(plan => {
           if (stripeStatus === true) {
@@ -167,7 +171,10 @@ function postAch(request, response) {
 
 
 function postCreditCard(request, response) {
-  //Empty Request,//200 code is for sucess,//444 code is for failure
+  //Empty Request,
+  // 200 code is for sucess,
+  // 444 code is for failure,
+  //Payment gateway accepting amount in cents that's why we are multiplied by 100
   if (Object.keys(request.body).length === 0) {
     return response
       .status(422)
@@ -175,8 +182,8 @@ function postCreditCard(request, response) {
   }
   paymentData = request.body;
   paymentType = 'Card';
-  //Check the customer in mongodb
-  mongo
+  //Check the customer in MONGOdb
+  MONGO
     .db
     .collection('ifg_donations')
     .find({'emailId': paymentData.email}).toArray()
@@ -193,12 +200,12 @@ function postCreditCard(request, response) {
         metadata = {
           userName: paymentData.data.card.name,
           Email: paymentData.email,
-          Address1: paymentData.data.card.address_line1,
-          Address2: paymentData.data.card.address_line2,
-          City: paymentData.data.card.address_city,
-          State: paymentData.data.card.address_state,
-          Zip: paymentData.data.card.address_zip,
-          Country: paymentData.data.card.address_country,
+          address1: paymentData.data.card.address_line1,
+          address2: paymentData.data.card.address_line2,
+          city: paymentData.data.card.address_city,
+          state: paymentData.data.card.address_state,
+          zip: paymentData.data.card.address_zip,
+          country: paymentData.data.card.address_country,
           firstName: paymentData.donorFirstName,
           lastName: paymentData.donorLastName,
           phoneNumber: paymentData.phoneNumber
@@ -213,7 +220,7 @@ function postCreditCard(request, response) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new Donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
+          new DONATIONS(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
@@ -227,11 +234,11 @@ function postCreditCard(request, response) {
       function createCardCharge(id) {
         stripe.charges.create({
           amount: paymentData.amount * 100,
-          currency: 'usd',
+          currency: currency,
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new Donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+          new DONATIONS(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
@@ -241,13 +248,13 @@ function postCreditCard(request, response) {
         })
       }
 
-      //cardSubscription for Exsitingcustomer
+      //cardSubscription for Existingcustomer
       if (paymentData.status == true) {
         let plan = stripe.plans.create({
           name: paymentData.email,
           id: paymentData.data.id,
-          interval: 'day',
-          currency: 'usd',
+          interval: interval,
+          currency: currency,
           amount: paymentData.amount * 100,
         }).then(plan => {
           if (stripeStatus == true) {
@@ -267,7 +274,7 @@ function postCreditCard(request, response) {
           return response.send(444);
         });
       } else {
-        //cardCharge for Exsitingcustomer
+        //cardCharge for Existingcustomer
         if (stripeStatus == true) {
           createCardCharge(customerId);
         } else {

@@ -41,6 +41,6 @@
   "stripe": {
     "STRIPE_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
     "currency": "usd",
-    "interval":"day"
+    "interval":"month"
   }
 }
