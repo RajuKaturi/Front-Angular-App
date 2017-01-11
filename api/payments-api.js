@@ -47,21 +47,20 @@ function postAch(request, response) {
         stripeStatus = true;
         customerId = data[0].customerId;
       }
-
       //createMetaData
       function createMetaData() {
         metadata = {
           userName: paymentData.data.bank_account.name,
-          email: paymentData.email,
-          address1: paymentData.address1,
-          address2: paymentData.address2,
-          city: paymentData.city,
-          state: paymentData.state,
-          zip: paymentData.zip,
-          country: paymentData.country,
+          Email: paymentData.email,
+          Address1: paymentData.address1,
+          Address2: paymentData.address2,
+          City: paymentData.city,
+          State: paymentData.state,
+          Zip: paymentData.zip,
+          Country: paymentData.country,
           phoneNumber: paymentData.phoneNumber,
-          firstName: paymentData.donarFirstName,
-          lastName: paymentData.donarLastName
+          firstName: paymentData.donorFirstName,
+          lastName: paymentData.donorLastName
         };
         return metadata;
       }
@@ -73,7 +72,7 @@ function postAch(request, response) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new Donations(subscription, paymentType, paymentType.donarFirstName, paymentData.donarLastName).save().then(() => {
+          new Donations(subscription, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
@@ -88,11 +87,11 @@ function postAch(request, response) {
       function createAchCharge(id) {
         stripe.charges.create({
           amount: paymentData.amount * 100,
-          currency: 'usd',
+          currency: currency,
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new Donations(charge, paymentType, paymentType.donarFirstName, paymentData.donarLastName).save().then(() => {
+          new Donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
@@ -193,15 +192,15 @@ function postCreditCard(request, response) {
       function createMetaData() {
         metadata = {
           userName: paymentData.data.card.name,
-          email: paymentData.email,
-          address1: paymentData.data.card.address_line1,
-          address2: paymentData.data.card.address_line2,
-          aity: paymentData.data.card.address_city,
-          state: paymentData.data.card.address_state,
-          zip: paymentData.data.card.address_zip,
-          country: paymentData.data.card.address_country,
-          firstName: paymentData.donarFirstName,
-          lastName: paymentData.donarLastName,
+          Email: paymentData.email,
+          Address1: paymentData.data.card.address_line1,
+          Address2: paymentData.data.card.address_line2,
+          City: paymentData.data.card.address_city,
+          State: paymentData.data.card.address_state,
+          Zip: paymentData.data.card.address_zip,
+          Country: paymentData.data.card.address_country,
+          firstName: paymentData.donorFirstName,
+          lastName: paymentData.donorLastName,
           phoneNumber: paymentData.phoneNumber
         };
         return metadata;
@@ -214,7 +213,7 @@ function postCreditCard(request, response) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new Donations(subscription, paymentType, paymentData.donarFirstName, paymentData.donarLastName).save().then(() => {
+          new Donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
@@ -232,7 +231,7 @@ function postCreditCard(request, response) {
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new Donations(charge, paymentType, paymentType.donarFirstName, paymentData.donarLastName).save().then(() => {
+          new Donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
             return response.send(200);
           }).catch(() => {
             return response.send(444);
