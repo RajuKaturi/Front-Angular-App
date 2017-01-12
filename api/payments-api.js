@@ -108,7 +108,7 @@ function postAch(req, res) {
       }
 
       //achSubscription for Existingcustomer
-      if (paymentData.status == true) {
+      if (paymentData.status === true) {
         let plan = stripe.plans.create({
           name: paymentData.email,
           id: paymentData.data.id,
@@ -141,7 +141,7 @@ function postAch(req, res) {
           return res.send(444);
         });
       } else {
-        if (stripeStatus == true) {
+        if (stripeStatus === true) {
           //achCharge for ExistingCustomer
           createAchCharge(customerId);
         } else {
@@ -252,7 +252,7 @@ function postCreditCard(req, res) {
       }
 
       //cardSubscription for Existingcustomer
-      if (paymentData.status == true) {
+      if (paymentData.status === true) {
         let plan = stripe.plans.create({
           name: paymentData.email,
           id: paymentData.data.id,
@@ -260,7 +260,7 @@ function postCreditCard(req, res) {
           currency: currency,
           amount: paymentData.amount * 100,
         }).then(plan => {
-          if (stripeStatus == true) {
+          if (stripeStatus === true) {
             createCardSubscription(customerId);
           } else {
             //cardSubscription for Newcustomer
@@ -278,7 +278,7 @@ function postCreditCard(req, res) {
         });
       } else {
         //cardCharge for Existingcustomer
-        if (stripeStatus == true) {
+        if (stripeStatus === true) {
           createCardCharge(customerId);
         } else {
           //cardCharge for Newcustomer
