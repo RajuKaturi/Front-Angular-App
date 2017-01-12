@@ -1,47 +1,49 @@
 'use strict';
 
-const ACH = require('../models/ach');
-const BASE64 = require('base-64');
-const CONFIG = require('../access/config');
-const CREDITCARD = require('../models/credit-card');
-const ENCODEKEY = BASE64.encode(CONFIG.recurly.API_KEY);
-const EXPRESS = require('express');
-const ROUTER = EXPRESS.Router();
-const REQUEST = require('request');
-const MONGO = require('../access/mongo');
-const DONATIONS = require('../models/donations');
+const ach = require('../models/ach');
+const base64 = require('base-64');
+const config = require('../access/config');
+const crediCard = require('../models/credit-card');
+const encodeKey = base64.encode(config.recurly.API_KEY);
+const express = require('express');
+const router = express.Router();
+const request = require('request');
+const mongo = require('../access/mongo');
+const donations = require('../models/donations');
 
-let stripe = require('stripe')(CONFIG.stripe.STRIPE_KEY),
-  currency = CONFIG.stripe.currency,
-  interval = CONFIG.stripe.interval
+let stripe = require('stripe')(config.stripe.STRIPE_KEY);
+let currency = config.stripe.currency;
+let interval = config.stripe.interval;
 
 // API for  ACH payment
-ROUTER.post('/ach', postAch);
+router.post('/ach', postAch);
 // APi for  credit card payment
-ROUTER.post('/creditcard', postCreditCard);
-module.exports = ROUTER;
+router.post('/creditcard', postCreditCard);
+module.exports = router;
 
-let paymentData,
-  customerId,
-  stripeStatus,
-  metadata,
-  paymentType;
+let paymentData;
+let customerId;
+let stripeStatus;
+let metadata;
+let paymentType;
 
-function postAch(request, response) {
-  //Empty Request,
-  // 200 code is for sucess,
-  // 444 code is for failure,
-  //Payment gateway accepting amount in cents that's why we are multiplied by 100
-  if (Object.keys(request.body).length === 0) {
-    return response
+// req means request we are reciving from the front end.
+// res means responce we are sending to the front end as a responce for received request.
+function postAch(req, res) {
+  // 200 code is for sucess- As the payment gateway & MongoDb is giving sucuess responce as 'String' .
+  // 444 code is for failure- As the payment gateway & MongoDb is giving failure responce as 'String'.
+  //Payment gateway accepting amount in cents that's why we are multiplied by 100.
+  //Empty req.
+  if (Object.keys(req.body).length === 0) {
+    return res
       .status(422)
       .json({message: 'INVALID BODY'});
   }
-  paymentData = request.body;
+  paymentData = req.body;
   paymentType = 'Bank';
 
   //Check the customer in MONGOdb
-  MONGO
+  mongo
     .db
     .collection('ifg_donations')
     .find({'emailId': paymentData.email}).toArray()
@@ -77,13 +79,13 @@ function postAch(request, response) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new DONATIONS(subscription, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
-            return response.send(200);
+          new donations(subscription, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+            return res.send(200);
           }).catch(() => {
-            return response.send(444);
+            return res.send(444);
           })
         }).catch(() => {
-          return response.send(444);
+          return res.send(444);
         })
       }
 
@@ -95,13 +97,13 @@ function postAch(request, response) {
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new DONATIONS(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
-            return response.send(200);
+          new donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+            return res.send(200);
           }).catch(() => {
-            return response.send(444);
+            return res.send(444);
           })
         }).catch(() => {
-          return response.send(444);
+          return res.send(444);
         })
       }
 
@@ -129,14 +131,14 @@ function postAch(request, response) {
                 }).then(bankAccount => {
                 createAchSubscription(bankAccount.customer);
               }).catch(() => {
-                return response.send(444);
+                return res.send(444);
               })
             }).catch(() => {
-              return response.send(444);
+              return res.send(444);
             })
           }
         }).catch(() => {
-          return response.send(444);
+          return res.send(444);
         });
       } else {
         if (stripeStatus == true) {
@@ -156,34 +158,35 @@ function postAch(request, response) {
               }).then(bankAccount => {
               createAchCharge(bankAccount.customer);
             }).catch(() => {
-              return response.send(444);
+              return res.send(444);
             })
           }).catch(() => {
-            return response.send(444);
+            return res.send(444);
           })
         }
       }
     })
     .catch(() => {
-      return response.send(444);
+      return res.send(444);
     })
 }
 
-
-function postCreditCard(request, response) {
-  //Empty Request,
-  // 200 code is for sucess,
-  // 444 code is for failure,
-  //Payment gateway accepting amount in cents that's why we are multiplied by 100
-  if (Object.keys(request.body).length === 0) {
-    return response
+// req means request we are reciving from the front end.
+// res means responce we are sending to the front end as a responce for received request.
+function postCreditCard(req, res) {
+  // 200 code is for sucess- As the payment gateway & MongoDb is giving sucuess responce as 'String' .
+  // 444 code is for failure- As the payment gateway & MongoDb is giving failure responce as 'String'.
+  //Payment gateway accepting amount in cents that's why we are multiplied by 100.
+  //Empty req.
+  if (Object.keys(req.body).length === 0) {
+    return res
       .status(422)
       .json({message: 'INVALID BODY'});
   }
-  paymentData = request.body;
+  paymentData = req.body;
   paymentType = 'Card';
   //Check the customer in MONGOdb
-  MONGO
+  mongo
     .db
     .collection('ifg_donations')
     .find({'emailId': paymentData.email}).toArray()
@@ -220,13 +223,13 @@ function postCreditCard(request, response) {
           plan: paymentData.data.id,
           metadata: createMetaData()
         }).then(subscription => {
-          new DONATIONS(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
-            return response.send(200);
+          new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
+            return res.send(200);
           }).catch(() => {
-            return response.send(444);
+            return res.send(444);
           })
         }).catch(() => {
-          return response.send(444);
+          return res.send(444);
         })
       }
 
@@ -238,13 +241,13 @@ function postCreditCard(request, response) {
           customer: id,
           metadata: createMetaData()
         }).then(charge => {
-          new DONATIONS(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
-            return response.send(200);
+          new donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+            return res.send(200);
           }).catch(() => {
-            return response.send(444);
+            return res.send(444);
           })
         }).catch(() => {
-          return response.send(444);
+          return res.send(444);
         })
       }
 
@@ -267,11 +270,11 @@ function postCreditCard(request, response) {
             }).then(customer => {
               createCardSubscription(customer.id);
             }).catch(() => {
-              return response.send(444);
+              return res.send(444);
             })
           }
         }).catch(() => {
-          return response.send(444);
+          return res.send(444);
         });
       } else {
         //cardCharge for Existingcustomer
@@ -285,12 +288,12 @@ function postCreditCard(request, response) {
           }).then(customer => {
             createCardCharge(customer.id);
           }).catch(() => {
-            return response.send(444);
+            return res.send(444);
           })
         }
       }
     })
     .catch(() => {
-      return response.send(444);
+      return res.send(444);
     });
 }
