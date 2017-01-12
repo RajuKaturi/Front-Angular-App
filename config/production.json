@@ -31,7 +31,7 @@
     "subscriptionURL": ""
   },
   "stripe": {
-    "STRIPE_KEY": "sk_live_l2KS3QMFgGvIOkZu8ya3TJUA",
+    "STRIPE_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
     "currency": "usd",
     "interval":"month"
   }
