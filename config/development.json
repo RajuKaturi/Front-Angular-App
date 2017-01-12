@@ -11,11 +11,11 @@
         "options": null
       },
 
-      "CreditCard": {
+      "creditCard": {
         "name": "ifg_CreditCard",
         "options": null
       },
-      "Ach": {
+      "ach": {
         "name": "ifg_Ach",
         "options": null
       },
@@ -31,7 +31,7 @@
     "subscriptionURL": "https://kids-discover-test.recurly.com/v2/subscriptions"
   },
   "stripe": {
-    "STRIPE_KEY": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
+    "stripeKey": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
     "currency": "usd",
     "interval":"month"
   },

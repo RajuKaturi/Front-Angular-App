@@ -7,13 +7,12 @@ const ObjectId = require('mongodb').ObjectID;
 module.exports = CreditCardDb;
 
 function CreditCardDb() {
-  this.collectionName = (((config.mongodb || {}).collections || {}).CreditCard || {}).name || 'transactions';
-  this.options = (((config.mongodb || {}).collections || {}).CreditCard || {}).options || null;
+  this.collectionName = (((config.mongodb || {}).collections || {}).creditCard || {}).name || 'transactions';
+  this.options = (((config.mongodb || {}).collections || {}).creditCard || {}).options || null;
 }
 
 CreditCardDb.prototype.save = save;
 
-//////////
 function save(entity) {
   return new Promise((resolve, reject) => {
     entity._id = new ObjectId();

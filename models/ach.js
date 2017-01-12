@@ -17,9 +17,7 @@ function Ach(init, defaultSourceForACH) {
 
 Ach.prototype.save = save;
 
-//////////
 function save() {
-  console.log("save...",this);
   return new Promise((resolve, reject) => {
     new AchDb()
       .save(this)
