@@ -135,7 +135,7 @@ function postAch(req, res) {
             currency: currency,
             amount: paymentData.amount * 100,
           }).then(plan => {
-          if (stripeStatus === true) {
+          if (stripeStatus) {
             createAchSubscription(customerId);
           } else {
             //achSubscription for NewCustomer
@@ -170,7 +170,7 @@ function postAch(req, res) {
             .json({error: 'ERROR_CREATING_PLAN'});
         })
       } else {
-        if (stripeStatus === true) {
+        if (stripeStatus) {
           //achCharge for ExistingCustomer
           createAchCharge(customerId);
         } else {
