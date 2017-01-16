@@ -6,6 +6,7 @@ const objectID = require('mongodb').ObjectID;
 module.exports = Donations;
 
 function Donations(init, paymentType) {
+  console.log(init)
   this._id = (init._id) ? new objectID(init._id) : null;
   this.pushToActOn = Boolean(init.pushToActOn || false);
   this.pushContactToSalesForce = Boolean(init.pushContactToSalesForce || false);
