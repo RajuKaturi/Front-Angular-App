@@ -1,11 +1,8 @@
 'use strict';
 
 const donationsDb = require('../access/donationsDb');
-const objectID = require('mongodb').ObjectID;
-
 
 module.exports = searchDonations;
-
 
 function searchDonations() {
 
