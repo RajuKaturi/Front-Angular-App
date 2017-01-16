@@ -10,6 +10,7 @@ const router = express.Router();
 const request = require('request');
 const mongo = require('../access/mongo');
 const donations = require('../models/donations');
+const searchDonations = require('../models/search-donations');
 
 let currency = config.stripe.currency;
 let interval = config.stripe.interval;
@@ -221,140 +222,142 @@ function postCreditCard(req, res) {
   paymentData = req.body;
   paymentType = 'Card';
   //Check the customer in MONGOdb
-  mongo
-    .db
-    .collection('ifg_donations')
-    .find({'emailId': paymentData.email}).toArray()
-    .then((data) => {
-      if (data == '') {
-        stripeStatus = false;
-      } else {
-        stripeStatus = true;
-        customerId = data[0].customerId;
-      }
+  let searchDonation = new searchDonations();
+    searchDonation
+          .get(paymentData.email)
+          .then(
+            (data) => {
+              if (data == '') {
+                stripeStatus = false;
+              } else {
+                stripeStatus = true;
+                customerId = data[0].customerId;
+              }
 
-      //createMetaData
-      function createMetaData() {
-        metadata = {
-          userName: paymentData.data.card.name,
-          Email: paymentData.email,
-          address1: paymentData.data.card.address_line1,
-          address2: paymentData.data.card.address_line2,
-          city: paymentData.data.card.address_city,
-          state: paymentData.data.card.address_state,
-          zip: paymentData.data.card.address_zip,
-          country: paymentData.data.card.address_country,
-          firstName: paymentData.donorFirstName,
-          lastName: paymentData.donorLastName,
-          phoneNumber: paymentData.phoneNumber
-        };
-        return metadata;
-      }
+              //createMetaData
+              function createMetaData() {
+                metadata = {
+                  userName: paymentData.data.card.name,
+                  Email: paymentData.email,
+                  address1: paymentData.data.card.address_line1,
+                  address2: paymentData.data.card.address_line2,
+                  city: paymentData.data.card.address_city,
+                  state: paymentData.data.card.address_state,
+                  zip: paymentData.data.card.address_zip,
+                  country: paymentData.data.card.address_country,
+                  firstName: paymentData.donorFirstName,
+                  lastName: paymentData.donorLastName,
+                  phoneNumber: paymentData.phoneNumber
+                };
+                return metadata;
+              }
 
-      //createCardSubscription
-      function createCardSubscription(id) {
-        stripe
-          .subscriptions
-          .create({
-            customer: id,
-            plan: paymentData.data.id,
-            metadata: createMetaData()
-          }).then(subscription => {
-          new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
-            return res
-              .status(200)
-              .json({message: 'succeeded'});
-          }).catch((err) => {
-            return res
-              .status(400)
-              .json({error: 'ERROR_SAVING_DATA'});
-          })
-        }).catch((err) => {
-          return res
-            .status(400)
-            .json({error: 'ERROR_CREATING_SUBSCRIPTION'});
-        })
-      }
+              //createCardSubscription
+              function createCardSubscription(id) {
+                stripe
+                  .subscriptions
+                  .create({
+                    customer: id,
+                    plan: paymentData.data.id,
+                    metadata: createMetaData()
+                  }).then(subscription => {
+                  new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
+                    return res
+                      .status(200)
+                      .json({message: 'succeeded'});
+                  }).catch((err) => {
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_SAVING_DATA'});
+                  })
+                }).catch((err) => {
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_CREATING_SUBSCRIPTION'});
+                })
+              }
 
-      //createCardCharge
-      function createCardCharge(id) {
-        stripe
-          .charges
-          .create({
-            amount: paymentData.amount * 100,
-            currency: currency,
-            customer: id,
-            metadata: createMetaData()
-          }).then(charge => {
-          new donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
-            return res
-              .status(200)
-              .json({message: 'succeeded'});
-          }).catch((err) => {
-            return res
-              .status(400)
-              .json({error: 'ERROR_SAVING_DATA'});
-          })
-        }).catch((err) => {
-          return res
-            .status(400)
-            .json({error: 'ERROR_CREATING_CHARGE'});
-        })
-      }
+              //createCardCharge
+              function createCardCharge(id) {
+                stripe
+                  .charges
+                  .create({
+                    amount: paymentData.amount * 100,
+                    currency: currency,
+                    customer: id,
+                    metadata: createMetaData()
+                  }).then(charge => {
+                  new donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+                    return res
+                      .status(200)
+                      .json({message: 'succeeded'});
+                  }).catch((err) => {
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_SAVING_DATA'});
+                  })
+                }).catch((err) => {
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_CREATING_CHARGE'});
+                })
+              }
 
-      //cardSubscription for Existingcustomer
-      if (paymentData.status === true) {
-        stripe
-          .plans
-          .create({
-            name: paymentData.email,
-            id: paymentData.data.id,
-            interval: interval,
-            currency: currency,
-            amount: paymentData.amount * 100,
-          }).then(plan => {
-          if (stripeStatus) {
-            createCardSubscription(customerId);
-          } else {
-            //cardSubscription for Newcustomer
-            stripe
-              .customers
-              .create({
-                source: paymentData.data.id,
-                email: paymentData.email,
-              }).then(customer => {
-              createCardSubscription(customer.id);
-            }).catch((err) => {
-              return res
-                .status(400)
-                .json({error: 'ERROR_CREATING_CUSTOMER'});
-            })
-          }
-        }).catch((err) => {
-          return res
-            .status(400)
-            .json({error: 'ERROR_CREATING_PLAN'});
-        })
-      } else {
-        //cardCharge for Existingcustomer
-        if (stripeStatus) {
-          createCardCharge(customerId);
-        } else {
-          //cardCharge for Newcustomer
-          stripe
-            .customers
-            .create({
-              source: paymentData.data.id,
-              email: paymentData.email,
-            }).then(customer => {
-            createCardCharge(customer.id);
-          }).catch((err) => {
-            return res
-              .status(400)
-              .json({error: 'ERROR_CREATING_CUSTOMER'});
-          })
-        }
-      }
+              //cardSubscription for Existingcustomer
+              if (paymentData.status === true) {
+                stripe
+                  .plans
+                  .create({
+                    name: paymentData.email,
+                    id: paymentData.data.id,
+                    interval: interval,
+                    currency: currency,
+                    amount: paymentData.amount * 100,
+                  }).then(plan => {
+                  if (stripeStatus) {
+                    createCardSubscription(customerId);
+                  } else {
+                    //cardSubscription for Newcustomer
+                    stripe
+                      .customers
+                      .create({
+                        source: paymentData.data.id,
+                        email: paymentData.email,
+                      }).then(customer => {
+                      createCardSubscription(customer.id);
+                    }).catch((err) => {
+                      return res
+                        .status(400)
+                        .json({error: 'ERROR_CREATING_CUSTOMER'});
+                    })
+                  }
+                }).catch((err) => {
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_CREATING_PLAN'});
+                })
+              } else {
+                //cardCharge for Existingcustomer
+                if (stripeStatus) {
+                  createCardCharge(customerId);
+                } else {
+                  //cardCharge for Newcustomer
+                  stripe
+                    .customers
+                    .create({
+                      source: paymentData.data.id,
+                      email: paymentData.email,
+                    }).then(customer => {
+                    createCardCharge(customer.id);
+                  }).catch((err) => {
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_CREATING_CUSTOMER'});
+                  })
+                }
+              }
+
+
     }).catch((err) => {
     return res
       .status(400)

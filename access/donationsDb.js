@@ -12,6 +12,7 @@ function DonationsDb() {
 }
 
 DonationsDb.prototype.save = save;
+DonationsDb.prototype.get = get;
 
 function save(entity) {
   return new Promise((resolve, reject) => {
@@ -27,3 +28,15 @@ function save(entity) {
   });
 }
 
+function get(emailId) {
+  return new Promise((resolve, reject) => {
+    mongo
+      .db
+      .collection(this.collectionName)
+      .find({emailId:emailId}).toArray()
+      .then((data) => {
+        return resolve(data);
+      })
+      .catch(reject);
+  });
+}
