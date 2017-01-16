@@ -225,12 +225,11 @@ function postCreditCard(req, res) {
   paymentType = 'Card';
   //Check the customer in MONGOdb
   let searchDonation = new searchDonations();
-  let sample = new stripeCard();
+  let stripeCardPayment = new stripeCard();
   searchDonation
     .get(paymentData.email)
     .then(
       (data) => {
-        console.log(data)
         if (data == '') {
           stripeStatus = false;
         } else {
@@ -241,9 +240,41 @@ function postCreditCard(req, res) {
         if (stripeStatus) {
           console.log('this is existing')
           if (paymentData.status) {
+            console.log('This is recurring existing...')
+
+            stripeCardPayment.createPlan(paymentData).then((plan) => {
+
+              console.log('plan created succcc-----1 ')
+              console.log(plan)
+
+              stripeCardPayment.createCardSubscription(customerId, paymentData).then((charge) => {
+
+                console.log('This is duplicate existing customer...');
+                return res
+                  .status(200)
+                  .json({message: 'succeeded'});
+
+
+              }).catch((err) => {
+                console.log("err")
+                console.log(err)
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_SAVING_DATA'});
+              })
+
+
+            }).catch((err) => {
+              console.log(err)
+              console.log(err)
+              return res
+                .status(400)
+                .json({error: 'ERROR_SAVING_DATA'});
+            })
+
 
           } else {
-            sample.createCardCharge(customerId,paymentData).then((charge) => {
+            stripeCardPayment.createCardCharge(customerId, paymentData).then((charge) => {
               new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
                 return res
                   .status(200)
@@ -268,7 +299,7 @@ function postCreditCard(req, res) {
             console.log('recurring')
 
           } else {
-            sample.cardChargeforNewcustomer(paymentData).then((charge) => {
+            stripeCardPayment.cardChargeforNewcustomer(paymentData).then((charge) => {
               new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
                 return res
                   .status(200)
