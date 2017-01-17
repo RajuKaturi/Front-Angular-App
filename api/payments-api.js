@@ -13,6 +13,7 @@ const donations = require('../models/donations');
 const searchDonations = require('../models/search-donations');
 
 const stripeCard = require('../models/stripe-card');
+const stripeAch = require('../models/stripe-ach');
 
 let currency = config.stripe.currency;
 let interval = config.stripe.interval;
@@ -48,163 +49,223 @@ function postAch(req, res) {
 
   //Check the customer in mongodb
   let searchDonation = new searchDonations();
+  let stripeAchPayment = new stripeAch();
   searchDonation
     .get(paymentData.email)
     .then(
       (data) => {
         if (data == '') {
           stripeStatus = false;
+
         } else {
+
           stripeStatus = true;
           customerId = data[0].customerId;
         }
-        //createMetaData
-        function createMetaData() {
-          metadata = {
-            userName: paymentData.data.bank_account.name,
-            Email: paymentData.email,
-            address1: paymentData.address1,
-            address2: paymentData.address2,
-            city: paymentData.city,
-            state: paymentData.state,
-            zip: paymentData.zip,
-            country: paymentData.country,
-            phoneNumber: paymentData.phoneNumber,
-            firstName: paymentData.donorFirstName,
-            lastName: paymentData.donorLastName
-          };
-          return metadata;
-        }
 
-        //createAchSubscription
-        function createAchSubscription(id) {
-          stripe
-            .subscriptions
-            .create({
-              customer: id,
-              plan: paymentData.data.id,
-              metadata: createMetaData()
-            }).then(subscription => {
-            new donations(subscription, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
-              return res
-                .status(200)
-                .json({message: 'succeeded'});
-            }).catch((err) => {
-              return res
-                .status(400)
-                .json({error: 'ERROR_SAVING_DATA'});
-            })
-          }).catch((err) => {
-            return res
-              .status(400)
-              .json({error: 'ERROR_CREATING_SUBSCRIPTION'});
-          })
-        }
+        if (stripeStatus) {
+          console.log('Existing  customer..');
+          if (paymentData.status) {
+            console.log('Recurring ..');
+          } else {
+            console.log('Single..');
+          }
 
-        //createAchCharge
-        function createAchCharge(id) {
-          stripe
-            .charges
-            .create({
-              amount: paymentData.amount * 100,
-              currency: currency,
-              customer: id,
-              metadata: createMetaData()
-            }).then(charge => {
-            new donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
-              return res
-                .status(200)
-                .json({message: 'succeeded'});
-            }).catch((err) => {
-              return res
-                .status(400)
-                .json({error: 'ERROR_SAVING_DATA'});
-            })
-          }).catch((err) => {
-            return res
-              .status(400)
-              .json({error: 'ERROR_CREATING_CHARGE'});
-          })
-        }
-
-        //achSubscription for Existingcustomer
-        if (paymentData.status === true) {
-          stripe
-            .plans
-            .create({
-              name: paymentData.email,
-              id: paymentData.data.id,
-              interval: interval,
-              currency: currency,
-              amount: paymentData.amount * 100,
-            }).then(plan => {
-            if (stripeStatus) {
-              createAchSubscription(customerId);
-            } else {
-              //achSubscription for NewCustomer
-              stripe
-                .customers
-                .create({
-                  source: paymentData.data.id,
-                  email: paymentData.email,
-                }).then(customer => {
-                stripe
-                  .customers
-                  .verifySource(
-                    customer.id,
-                    customer.default_source, {
-                      amounts: [32, 45]
-                    }).then(bankAccount => {
-                  createAchSubscription(bankAccount.customer);
+        } else {
+          console.log('new customer..');
+          if (paymentData.status) {
+            console.log('Recurring ..');
+          } else {
+            console.log('Single..');
+            stripeAchPayment.createAchCustomer(paymentData).then((customer) => {
+              console.log('Customer created sucusfulyy.....');
+              stripeAchPayment.verifyCustomer(customer).then((bankAccount) => {
+                console.log('Customer verified.. sucusfulyy.....')
+                stripeAchPayment.createAchCharge(bankAccount.customer, paymentData).then((charge) => {
+                  console.log('Customer charge for Ach sucusfulyy.....')
+                  new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
+                    return res
+                      .status(200)
+                      .json({message: 'succeeded'});
+                  }).catch((err) => {
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_SAVING_DATA'});
+                  })
                 }).catch((err) => {
+                  console.log('create customer..')
+                  console.log(err)
                   return res
                     .status(400)
-                    .json({error: 'ERROR_CREATING_BANKACCOUNT'});
-                })
+                    .json({error: 'ERROR_WHILE_CHARGING_CUSTOMER'});
+                });
               }).catch((err) => {
+                console.log('verify customer..')
+                console.log(err)
                 return res
                   .status(400)
-                  .json({error: 'ERROR_CREATING_CUSTOMER'});
-              })
-            }
-          }).catch((err) => {
-            return res
-              .status(400)
-              .json({error: 'ERROR_CREATING_PLAN'});
-          })
-        } else {
-          if (stripeStatus) {
-            //achCharge for ExistingCustomer
-            createAchCharge(customerId);
-          } else {
-            //achCharge for NewCustomer
-            stripe
-              .customers
-              .create({
-                source: paymentData.data.id,
-                email: paymentData.email,
-              }).then(customer => {
-              stripe
-                .customers
-                .verifySource(
-                  customer.id,
-                  customer.default_source,
-                  {
-                    amounts: [32, 45]
-                  }).then(bankAccount => {
-                createAchCharge(bankAccount.customer);
-              }).catch((err) => {
-                return res
-                  .status(400)
-                  .json({error: 'ERROR_CREATING_BANKACCOUNT'});
-              })
+                  .json({error: 'ERROR_WHILE_VERIFY_CUSTOMER'});
+              });
+
             }).catch((err) => {
+              console.log('create customer..')
+              console.log(err)
               return res
                 .status(400)
-                .json({error: 'ERROR_CREATING_CUSTOMER'});
-            })
+                .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
+            });
           }
+
         }
+
+
+        //createMetaData
+        // function createMetaData() {
+        //   metadata = {
+        //     userName: paymentData.data.bank_account.name,
+        //     Email: paymentData.email,
+        //     address1: paymentData.address1,
+        //     address2: paymentData.address2,
+        //     city: paymentData.city,
+        //     state: paymentData.state,
+        //     zip: paymentData.zip,
+        //     country: paymentData.country,
+        //     phoneNumber: paymentData.phoneNumber,
+        //     firstName: paymentData.donorFirstName,
+        //     lastName: paymentData.donorLastName
+        //   };
+        //   return metadata;
+        // }
+
+        //createAchSubscription
+        // function createAchSubscription(id) {
+        //   stripe
+        //     .subscriptions
+        //     .create({
+        //       customer: id,
+        //       plan: paymentData.data.id,
+        //       metadata: createMetaData()
+        //     }).then(subscription => {
+        //     new donations(subscription, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+        //       return res
+        //         .status(200)
+        //         .json({message: 'succeeded'});
+        //     }).catch((err) => {
+        //       return res
+        //         .status(400)
+        //         .json({error: 'ERROR_SAVING_DATA'});
+        //     })
+        //   }).catch((err) => {
+        //     return res
+        //       .status(400)
+        //       .json({error: 'ERROR_CREATING_SUBSCRIPTION'});
+        //   })
+        // }
+
+        //createAchCharge
+        // function createAchCharge(id) {
+        //   stripe
+        //     .charges
+        //     .create({
+        //       amount: paymentData.amount * 100,
+        //       currency: currency,
+        //       customer: id,
+        //       metadata: createMetaData()
+        //     }).then(charge => {
+        //     new donations(charge, paymentType, paymentType.donorFirstName, paymentData.donorLastName).save().then(() => {
+        //       return res
+        //         .status(200)
+        //         .json({message: 'succeeded'});
+        //     }).catch((err) => {
+        //       return res
+        //         .status(400)
+        //         .json({error: 'ERROR_SAVING_DATA'});
+        //     })
+        //   }).catch((err) => {
+        //     return res
+        //       .status(400)
+        //       .json({error: 'ERROR_CREATING_CHARGE'});
+        //   })
+        // }
+
+        //achSubscription for Existingcustomer
+        // if (paymentData.status === true) {
+        //   stripe
+        //     .plans
+        //     .create({
+        //       name: paymentData.email,
+        //       id: paymentData.data.id,
+        //       interval: interval,
+        //       currency: currency,
+        //       amount: paymentData.amount * 100,
+        //     }).then(plan => {
+        //     if (stripeStatus) {
+        //       createAchSubscription(customerId);
+        //     } else {
+        //       //achSubscription for NewCustomer
+        //       stripe
+        //         .customers
+        //         .create({
+        //           source: paymentData.data.id,
+        //           email: paymentData.email,
+        //         }).then(customer => {
+        //         stripe
+        //           .customers
+        //           .verifySource(
+        //             customer.id,
+        //             customer.default_source, {
+        //               amounts: [32, 45]
+        //             }).then(bankAccount => {
+        //           createAchSubscription(bankAccount.customer);
+        //         }).catch((err) => {
+        //           return res
+        //             .status(400)
+        //             .json({error: 'ERROR_CREATING_BANKACCOUNT'});
+        //         })
+        //       }).catch((err) => {
+        //         return res
+        //           .status(400)
+        //           .json({error: 'ERROR_CREATING_CUSTOMER'});
+        //       })
+        //     }
+        //   }).catch((err) => {
+        //     return res
+        //       .status(400)
+        //       .json({error: 'ERROR_CREATING_PLAN'});
+        //   })
+        // } else {
+        //   if (stripeStatus) {
+        //     //achCharge for ExistingCustomer
+        //     createAchCharge(customerId);
+        //   } else {
+        //     //achCharge for NewCustomer
+        //     stripe
+        //       .customers
+        //       .create({
+        //         source: paymentData.data.id,
+        //         email: paymentData.email,
+        //       }).then(customer => {
+        //       stripe
+        //         .customers
+        //         .verifySource(
+        //           customer.id,
+        //           customer.default_source,
+        //           {
+        //             amounts: [32, 45]
+        //           }).then(bankAccount => {
+        //         createAchCharge(bankAccount.customer);
+        //       }).catch((err) => {
+        //         return res
+        //           .status(400)
+        //           .json({error: 'ERROR_CREATING_BANKACCOUNT'});
+        //       })
+        //     }).catch((err) => {
+        //       return res
+        //         .status(400)
+        //         .json({error: 'ERROR_CREATING_CUSTOMER'});
+        //     })
+        //   }
+        // }
       })
     .catch((err) => {
       return res
@@ -341,8 +402,6 @@ function postCreditCard(req, res) {
               });
 
 
-
-
             }).catch((err) => {
               console.log(err)
               console.log(err)
@@ -350,8 +409,6 @@ function postCreditCard(req, res) {
                 .status(400)
                 .json({error: 'ERROR_SAVING_DATA'});
             })
-
-
 
 
           } else {
