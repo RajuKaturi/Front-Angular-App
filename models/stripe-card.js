@@ -1,6 +1,5 @@
 'use strict';
 
-
 const config = require('../access/config');
 
 let stripe = require('stripe')(config.stripe.stripeKey);
@@ -19,25 +18,20 @@ StripeCard.prototype.createMetaData = createMetaData;
 StripeCard.prototype.createCardSubscription = createCardSubscription;
 StripeCard.prototype.createPlan = createPlan;
 
-
+//createCardCustomer
 function createCardCustomer(paymentData) {
-
   return new Promise((resolve, reject) => {
     stripe.customers.create({
       email: paymentData.email,
       source: paymentData.data.id
-    })
-      .then((customer) => {
-        return resolve(customer);
-      })
-      .catch(reject);
+    }).then((customer) => {
+      return resolve(customer);
+    }).catch(reject);
   });
 }
 
-
+//createCardCharge
 function createCardCharge(customerId, paymentData) {
-  console.log(customerId)
-  console.log(paymentData)
   return new Promise((resolve, reject) => {
     stripe.charges.create({
       amount: paymentData.amount * 100,
@@ -46,15 +40,13 @@ function createCardCharge(customerId, paymentData) {
       metadata: createMetaData(paymentData)
     }).then((customer) => {
       return resolve(customer);
-    })
-      .catch(reject);
+    }).catch(reject);
   });
 }
 
-
+//createCardSubscription
 function createCardSubscription(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-    console.log('2')
     stripe
       .subscriptions
       .create({
@@ -63,16 +55,13 @@ function createCardSubscription(customerId, paymentData) {
         metadata: createMetaData(paymentData)
       }).then((subscription) => {
       return resolve(subscription);
-    })
-    // console.log(reject)
-      .catch(reject);
+    }).catch(reject);
   });
 }
 
-
+//createPlan
 function createPlan(paymentData) {
   return new Promise((resolve, reject) => {
-
     stripe
       .plans
       .create({
@@ -83,14 +72,12 @@ function createPlan(paymentData) {
         amount: paymentData.amount * 100,
       }).then((plan) => {
       return resolve(plan);
-    })
-      .catch(reject);
+    }).catch(reject);
   });
 }
 
-
+//createMetaData
 function createMetaData(paymentData) {
-
   let metadata = {
     userName: paymentData.data.name,
     Email: paymentData.email,
