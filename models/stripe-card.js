@@ -78,14 +78,14 @@ function createPlan(paymentData) {
 //createMetaData
 function createMetaData(paymentData) {
   let metadata = {
-    userName: paymentData.data.name,
+    userName: paymentData.data.card.name,
     Email: paymentData.email,
-    address1: paymentData.data.address_line1,
-    address2: paymentData.data.address_line2,
-    city: paymentData.data.address_city,
-    state: paymentData.data.address_state,
-    zip: paymentData.data.address_zip,
-    country: paymentData.data.address_country,
+    address1: paymentData.data.card.address_line1,
+    address2: paymentData.data.card.address_line2,
+    city: paymentData.data.card.address_city,
+    state: paymentData.data.card.address_state,
+    zip: paymentData.data.card.address_zip,
+    country: paymentData.data.card.address_country,
     firstName: paymentData.donorFirstName,
     lastName: paymentData.donorLastName,
     phoneNumber: paymentData.phoneNumber

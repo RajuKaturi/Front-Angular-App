@@ -18,6 +18,7 @@ StripeAch.prototype.createMetaData = createMetaData;
 StripeAch.prototype.createPlan = createPlan;
 StripeAch.prototype.createAchSubscription = createAchSubscription;
 
+//createAchCustomer
 function createAchCustomer(paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -33,6 +34,7 @@ function createAchCustomer(paymentData) {
   });
 }
 
+//createAchSubscription
 function createAchSubscription(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -50,6 +52,7 @@ function createAchSubscription(customerId, paymentData) {
 
 }
 
+//verifyCustomer
 function verifyCustomer(customer) {
   return new Promise((resolve, reject) => {
     stripe
@@ -67,6 +70,7 @@ function verifyCustomer(customer) {
   });
 }
 
+//createAchCharge
 function createAchCharge(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -84,6 +88,7 @@ function createAchCharge(customerId, paymentData) {
   });
 }
 
+//createPlan
 function createPlan(paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -102,16 +107,17 @@ function createPlan(paymentData) {
   });
 }
 
+//createMetaData
 function createMetaData(paymentData) {
   let metadata = {
-    userName: paymentData.data.name,
+    userName: paymentData.data.bank_account.name,
     Email: paymentData.email,
-    address1: paymentData.data.address_line1,
-    address2: paymentData.data.address_line2,
-    city: paymentData.data.address_city,
-    state: paymentData.data.address_state,
-    zip: paymentData.data.address_zip,
-    country: paymentData.data.address_country,
+    address1: paymentData.address1,
+    address2: paymentData.address2,
+    city: paymentData.city,
+    state: paymentData.state,
+    zip: paymentData.zip,
+    country: paymentData.country,
     firstName: paymentData.donorFirstName,
     lastName: paymentData.donorLastName,
     phoneNumber: paymentData.phoneNumber
