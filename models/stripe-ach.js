@@ -1,6 +1,5 @@
 'use strict';
 
-
 const config = require('../access/config');
 
 let stripe = require('stripe')(config.stripe.stripeKey);
@@ -10,15 +9,14 @@ let interval = config.stripe.interval;
 module.exports = StripeAch;
 
 function StripeAch() {
-
 }
-
 
 StripeAch.prototype.createAchCustomer = createAchCustomer;
 StripeAch.prototype.verifyCustomer = verifyCustomer;
 StripeAch.prototype.createAchCharge = createAchCharge;
 StripeAch.prototype.createMetaData = createMetaData;
-
+StripeAch.prototype.createPlan = createPlan;
+StripeAch.prototype.createAchSubscription = createAchSubscription;
 
 function createAchCustomer(paymentData) {
   return new Promise((resolve, reject) => {
@@ -30,6 +28,22 @@ function createAchCustomer(paymentData) {
       })
       .then((customer) => {
         return resolve(customer);
+      })
+      .catch(reject);
+  });
+}
+
+function createAchSubscription(customerId, paymentData) {
+  return new Promise((resolve, reject) => {
+    stripe
+      .subscriptions
+      .create({
+        customer: customerId,
+        plan: paymentData.data.id,
+        metadata: createMetaData(paymentData)
+      })
+      .then((subscriptions) => {
+        return resolve(subscriptions);
       })
       .catch(reject);
   });
@@ -51,29 +65,44 @@ function verifyCustomer(customer) {
       })
       .catch(reject);
   });
-
 }
 
 function createAchCharge(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-      stripe
-        .charges
-        .create({
-          amount: paymentData.amount * 100,
-          currency: currency,
-          customer: customerId,
-          metadata: createMetaData(paymentData)
-        })
+    stripe
+      .charges
+      .create({
+        amount: paymentData.amount * 100,
+        currency: currency,
+        customer: customerId,
+        metadata: createMetaData(paymentData)
+      })
       .then((charge) => {
         return resolve(charge);
       })
       .catch(reject);
   });
+}
 
+function createPlan(paymentData) {
+  return new Promise((resolve, reject) => {
+    stripe
+      .plans
+      .create({
+        name: paymentData.email,
+        id: paymentData.data.id,
+        interval: interval,
+        currency: currency,
+        amount: paymentData.amount * 100,
+      })
+      .then((plan) => {
+        return resolve(plan);
+      })
+      .catch(reject);
+  });
 }
 
 function createMetaData(paymentData) {
-
   let metadata = {
     userName: paymentData.data.name,
     Email: paymentData.email,
