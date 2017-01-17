@@ -9,7 +9,6 @@ let interval = config.stripe.interval;
 module.exports = StripeCard;
 
 function StripeCard() {
-
 }
 
 StripeCard.prototype.createCardCustomer = createCardCustomer;

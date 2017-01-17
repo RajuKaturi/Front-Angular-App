@@ -11,8 +11,6 @@ const searchDonations = require('../models/search-donations');
 const stripeCard = require('../models/stripe-card');
 const stripeAch = require('../models/stripe-ach');
 
-let stripe = require('stripe')(config.stripe.stripeKey);
-
 // API for  ACH payment
 router.post('/ach', postAch);
 // APi for  credit card payment
