@@ -301,21 +301,84 @@ function postCreditCard(req, res) {
         } else {
           console.log('this is new')
           if (paymentData.status) {
-            console.log('recurring')
+            console.log('recurring');
 
-          } else {
-            stripeCardPayment.cardChargeforNewcustomer(paymentData).then((charge) => {
-              new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
-                return res
-                  .status(200)
-                  .json({message: 'succeeded'});
+            stripeCardPayment.createPlan(paymentData).then((plan) => {
+
+              console.log('plan created succcc-----1 ')
+              console.log(plan)
+
+              stripeCardPayment.createCardCustomer(paymentData).then((customer) => {
+                console.log('Customer created sucusfulyy.....')
+
+                stripeCardPayment.createCardSubscription(customer.id, paymentData).then((charge) => {
+
+                  console.log('This is new  sub for customer....');
+                  new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
+                    return res
+                      .status(200)
+                      .json({message: 'succeeded'});
+                  }).catch((err) => {
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_SAVING_DATA'});
+                  })
+
+                }).catch((err) => {
+                  console.log("err")
+                  console.log(err)
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_SAVING_DATA'});
+                })
+
               }).catch((err) => {
+                console.log('create customer..')
+                console.log(err)
                 return res
                   .status(400)
-                  .json({error: 'ERROR_SAVING_DATA'});
-              })
+                  .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
+              });
+
+
+
 
             }).catch((err) => {
+              console.log(err)
+              console.log(err)
+              return res
+                .status(400)
+                .json({error: 'ERROR_SAVING_DATA'});
+            })
+
+
+
+
+          } else {
+            stripeCardPayment.createCardCustomer(paymentData).then((customer) => {
+              console.log('Customer created sucusfulyy.....')
+              stripeCardPayment.createCardCharge(customer.id, paymentData).then((charge) => {
+                new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
+                  return res
+                    .status(200)
+                    .json({message: 'succeeded'});
+                }).catch((err) => {
+                  console.log(err)
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_SAVING_DATA'});
+                })
+
+              }).catch((err) => {
+                console.log('charge')
+                console.log(err)
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_CHARGE_CUSTOMER'});
+              });
+
+            }).catch((err) => {
+              console.log('create customer..')
               console.log(err)
               return res
                 .status(400)

@@ -13,14 +13,14 @@ function StripeCard() {
 
 }
 
-StripeCard.prototype.cardChargeforNewcustomer = cardChargeforNewcustomer;
+StripeCard.prototype.createCardCustomer = createCardCustomer;
 StripeCard.prototype.createCardCharge = createCardCharge;
 StripeCard.prototype.createMetaData = createMetaData;
 StripeCard.prototype.createCardSubscription = createCardSubscription;
 StripeCard.prototype.createPlan = createPlan;
 
 
-function cardChargeforNewcustomer(paymentData) {
+function createCardCustomer(paymentData) {
 
   return new Promise((resolve, reject) => {
     stripe.customers.create({
@@ -28,15 +28,7 @@ function cardChargeforNewcustomer(paymentData) {
       source: paymentData.data.id
     })
       .then((customer) => {
-        stripe.charges.create({
-          amount: paymentData.amount * 100,
-          currency: currency,
-          customer: customer.id,
-          metadata: createMetaData(paymentData)
-        }).then((customer) => {
-          return resolve(customer);
-        })
-          .catch(reject);
+        return resolve(customer);
       })
       .catch(reject);
   });
@@ -44,6 +36,8 @@ function cardChargeforNewcustomer(paymentData) {
 
 
 function createCardCharge(customerId, paymentData) {
+  console.log(customerId)
+  console.log(paymentData)
   return new Promise((resolve, reject) => {
     stripe.charges.create({
       amount: paymentData.amount * 100,
@@ -70,7 +64,7 @@ function createCardSubscription(customerId, paymentData) {
       }).then((subscription) => {
       return resolve(subscription);
     })
-      // console.log(reject)
+    // console.log(reject)
       .catch(reject);
   });
 }
@@ -110,6 +104,5 @@ function createMetaData(paymentData) {
     lastName: paymentData.donorLastName,
     phoneNumber: paymentData.phoneNumber
   };
-  console.log(metadata)
   return metadata;
 }
