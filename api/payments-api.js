@@ -250,10 +250,15 @@ function postCreditCard(req, res) {
               stripeCardPayment.createCardSubscription(customerId, paymentData).then((charge) => {
 
                 console.log('This is duplicate existing customer...');
-                return res
-                  .status(200)
-                  .json({message: 'succeeded'});
-
+                new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName).save().then(() => {
+                  return res
+                    .status(200)
+                    .json({message: 'succeeded'});
+                }).catch((err) => {
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_SAVING_DATA'});
+                })
 
               }).catch((err) => {
                 console.log("err")
