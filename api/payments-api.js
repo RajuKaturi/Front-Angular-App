@@ -46,7 +46,13 @@ function postAch(req, res) {
           stripeStatus = false;
         } else {
           stripeStatus = true;
-          customerId = data[0].customerId;
+          if (data[0].customerId !== '') {
+            customerId = data[0].customerId;
+          } else {
+            return res
+              .status(400)
+              .json({error: 'ERROR_WHILE_GETTING_DATA'});
+          }
         }
 
         //If customer exist
@@ -250,7 +256,13 @@ function postCreditCard(req, res) {
           stripeStatus = false;
         } else {
           stripeStatus = true;
-          customerId = data[0].customerId;
+          if (data[0].customerId !== '') {
+            customerId = data[0].customerId;
+          } else {
+            return res
+              .status(400)
+              .json({error: 'ERROR_WHILE_GETTING_DATA'});
+          }
         }
 
         //If customer exist recurringPayment
