@@ -17,6 +17,7 @@ StripeAchAccessLayer.prototype.createAchCharge = createAchCharge;
 StripeAchAccessLayer.prototype.createMetaData = createMetaData;
 StripeAchAccessLayer.prototype.createPlan = createPlan;
 StripeAchAccessLayer.prototype.createAchSubscription = createAchSubscription;
+StripeAchAccessLayer.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
 
 //createAchCustomer
 function createAchCustomer(paymentData) {
@@ -124,4 +125,27 @@ function createMetaData(paymentData) {
     phoneNumber: paymentData.phoneNumber
   };
   return metadata;
+}
+
+
+//retrive Customer.
+function retriveAndUpdateCustomer(customerId, paymentData) {
+  return new Promise((resolve, reject) => {
+    stripe
+      .customers
+      .retrieve(customerId, {
+      })
+      .then((customer) => {
+        stripe
+          .customers
+          .update(customer.id, {
+            source: paymentData.data.id
+          })
+          .then((customer) => {
+            return resolve(customer);
+          })
+          .catch(reject);
+      })
+      .catch(reject);
+  });
 }

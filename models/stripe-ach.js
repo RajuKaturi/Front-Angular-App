@@ -12,6 +12,7 @@ StripeAch.prototype.verifyCustomer = verifyCustomer;
 StripeAch.prototype.createAchCharge = createAchCharge;
 StripeAch.prototype.createPlan = createPlan;
 StripeAch.prototype.createAchSubscription = createAchSubscription;
+StripeAch.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
 
 //createAchCustomer
 function createAchCustomer(paymentData) {
@@ -65,3 +66,12 @@ function createPlan(paymentData) {
   });
 }
 
+function retriveAndUpdateCustomer(customerId, paymentData) {
+  return new Promise((resolve, reject) => {
+    new StripeAchAccessLayer()
+      .retriveAndUpdateCustomer(customerId, paymentData)
+      .then(resolve)
+      .catch(reject);
+  });
+
+}
