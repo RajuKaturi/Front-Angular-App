@@ -11,9 +11,8 @@ StripeCard.prototype.createCardCustomer = createCardCustomer;
 StripeCard.prototype.createCardCharge = createCardCharge;
 StripeCard.prototype.createCardSubscription = createCardSubscription;
 StripeCard.prototype.createPlan = createPlan;
-StripeCard.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
+StripeCard.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCustomer;
 
-//createCardCustomer
 function createCardCustomer(paymentData) {
   return new Promise((resolve, reject) => {
     new StripeCradAccessLayer()
@@ -23,7 +22,6 @@ function createCardCustomer(paymentData) {
   });
 }
 
-//createCardCharge
 function createCardCharge(customerId, paymentData) {
   console.log(customerId)
   return new Promise((resolve, reject) => {
@@ -34,8 +32,6 @@ function createCardCharge(customerId, paymentData) {
   });
 }
 
-
-//createCardSubscription
 function createCardSubscription(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     new StripeCradAccessLayer()
@@ -45,7 +41,6 @@ function createCardSubscription(customerId, paymentData) {
   });
 }
 
-//createPlan
 function createPlan(paymentData) {
   return new Promise((resolve, reject) => {
     new StripeCradAccessLayer()
@@ -55,13 +50,11 @@ function createPlan(paymentData) {
   });
 }
 
-
-function retriveAndUpdateCustomer(customerId, paymentData) {
+function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     new StripeCradAccessLayer()
-      .retriveAndUpdateCustomer(customerId, paymentData)
+      .retrieveAndUpdateCustomer(customerId, paymentData)
       .then(resolve)
       .catch(reject);
   });
-
 }

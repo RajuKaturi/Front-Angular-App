@@ -12,9 +12,8 @@ StripeAch.prototype.verifyCustomer = verifyCustomer;
 StripeAch.prototype.createAchCharge = createAchCharge;
 StripeAch.prototype.createPlan = createPlan;
 StripeAch.prototype.createAchSubscription = createAchSubscription;
-StripeAch.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
+StripeAch.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCustomer;
 
-//createAchCustomer
 function createAchCustomer(paymentData) {
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
@@ -24,7 +23,6 @@ function createAchCustomer(paymentData) {
   });
 }
 
-//createAchSubscription
 function createAchSubscription(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
@@ -32,10 +30,8 @@ function createAchSubscription(customerId, paymentData) {
       .then(resolve)
       .catch(reject);
   });
-
 }
 
-//verifyCustomer
 function verifyCustomer(customer) {
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
@@ -45,7 +41,6 @@ function verifyCustomer(customer) {
   });
 }
 
-//createAchCharge
 function createAchCharge(customerId, paymentData) {
   console.log(customerId)
   return new Promise((resolve, reject) => {
@@ -56,7 +51,6 @@ function createAchCharge(customerId, paymentData) {
   });
 }
 
-//createPlan
 function createPlan(paymentData) {
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
@@ -66,12 +60,11 @@ function createPlan(paymentData) {
   });
 }
 
-function retriveAndUpdateCustomer(customerId, paymentData) {
+function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
-      .retriveAndUpdateCustomer(customerId, paymentData)
+      .retrieveAndUpdateCustomer(customerId, paymentData)
       .then(resolve)
       .catch(reject);
   });
-
 }

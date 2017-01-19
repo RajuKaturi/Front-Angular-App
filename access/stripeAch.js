@@ -17,7 +17,7 @@ StripeAchAccessLayer.prototype.createAchCharge = createAchCharge;
 StripeAchAccessLayer.prototype.createMetaData = createMetaData;
 StripeAchAccessLayer.prototype.createPlan = createPlan;
 StripeAchAccessLayer.prototype.createAchSubscription = createAchSubscription;
-StripeAchAccessLayer.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
+StripeAchAccessLayer.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCustomer;
 
 //createAchCustomer
 function createAchCustomer(paymentData) {
@@ -35,7 +35,6 @@ function createAchCustomer(paymentData) {
   });
 }
 
-//createAchSubscription
 function createAchSubscription(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -50,10 +49,8 @@ function createAchSubscription(customerId, paymentData) {
       })
       .catch(reject);
   });
-
 }
 
-//verifyCustomer
 function verifyCustomer(customer) {
   return new Promise((resolve, reject) => {
     stripe
@@ -71,7 +68,6 @@ function verifyCustomer(customer) {
   });
 }
 
-//createAchCharge
 function createAchCharge(customerId, paymentData) {
   console.log(customerId)
   return new Promise((resolve, reject) => {
@@ -90,7 +86,6 @@ function createAchCharge(customerId, paymentData) {
   });
 }
 
-//createPlan
 function createPlan(paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -109,11 +104,10 @@ function createPlan(paymentData) {
   });
 }
 
-//createMetaData
 function createMetaData(paymentData) {
   let metadata = {
     userName: paymentData.data.bank_account.name,
-    Email: paymentData.email,
+    email: paymentData.email,
     address1: paymentData.address1,
     address2: paymentData.address2,
     city: paymentData.city,
@@ -127,9 +121,7 @@ function createMetaData(paymentData) {
   return metadata;
 }
 
-
-//retrive Customer.
-function retriveAndUpdateCustomer(customerId, paymentData) {
+function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
       .customers

@@ -16,7 +16,7 @@ StripeCradAccessLayer.prototype.createCardCharge = createCardCharge;
 StripeCradAccessLayer.prototype.createMetaData = createMetaData;
 StripeCradAccessLayer.prototype.createCardSubscription = createCardSubscription;
 StripeCradAccessLayer.prototype.createPlan = createPlan;
-StripeCradAccessLayer.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
+StripeCradAccessLayer.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCustomer;
 
 //createCardCustomer
 function createCardCustomer(paymentData) {
@@ -30,7 +30,6 @@ function createCardCustomer(paymentData) {
   });
 }
 
-//createCardCharge
 function createCardCharge(customerId, paymentData) {
   console.log(customerId)
   return new Promise((resolve, reject) => {
@@ -45,7 +44,6 @@ function createCardCharge(customerId, paymentData) {
   });
 }
 
-//createCardSubscription
 function createCardSubscription(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -60,7 +58,6 @@ function createCardSubscription(customerId, paymentData) {
   });
 }
 
-//createPlan
 function createPlan(paymentData) {
   return new Promise((resolve, reject) => {
     stripe
@@ -77,11 +74,10 @@ function createPlan(paymentData) {
   });
 }
 
-//createMetaData
 function createMetaData(paymentData) {
   let metadata = {
     userName: paymentData.data.card.name,
-    Email: paymentData.email,
+    email: paymentData.email,
     address1: paymentData.data.card.address_line1,
     address2: paymentData.data.card.address_line2,
     city: paymentData.data.card.address_city,
@@ -95,9 +91,7 @@ function createMetaData(paymentData) {
   return metadata;
 }
 
-
-//retrive Customer.
-function retriveAndUpdateCustomer(customerId, paymentData) {
+function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
       .customers
