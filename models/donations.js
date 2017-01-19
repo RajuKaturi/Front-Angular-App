@@ -19,11 +19,26 @@ function Donations(init, paymentType) {
 }
 
 Donations.prototype.save = save;
+Donations.get = get;
+
+
 function save() {
   return new Promise((resolve, reject) => {
     new donationsDb()
       .save(this)
       .then(resolve)
+      .catch(reject);
+  });
+}
+
+
+function get(emailId) {
+  return new Promise((resolve, reject) => {
+    new donationsDb()
+      .get(emailId)
+      .then((data) => {
+        return resolve(data);
+      })
       .catch(reject);
   });
 }

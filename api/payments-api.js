@@ -6,7 +6,6 @@ const express = require('express');
 const router = express.Router();
 const request = require('request');
 const donations = require('../models/donations');
-const searchDonations = require('../models/search-donations');
 const stripeCard = require('../models/stripe-card');
 const stripeAch = require('../models/stripe-ach');
 
@@ -31,18 +30,17 @@ function postAch(req, res) {
   let paymentData = req.body;
   let paymentType = 'Bank';
   let stripeStatus;
-  let searchDonation = new searchDonations();
   let stripeAchPayment = new stripeAch();
 
-  //Empty req.
+//Empty req.
   if (Object.keys(req.body).length === 0) {
     return res
       .status(400)
       .json({message: 'INVALID_BODY'});
   }
 
-  //Check the customer in mongodb
-  searchDonation
+//Check the customer in mongodb
+  donations
     .get(paymentData.email)
     .then(
       (data) => {
@@ -53,15 +51,15 @@ function postAch(req, res) {
           customerId = data[0].customerId;
           console.log(customerId);
         }
-        //If customer exist
+//If customer exist
         if (stripeStatus) {
-          //Ach recurringPayment
+//Ach recurringPayment
           if (paymentData.status) {
-            //createPlan
+//createPlan
             stripeAchPayment
               .createPlan(paymentData)
               .then((plan) => {
-                //createAchSubscription
+//createAchSubscription
                 stripeAchPayment
                   .createAchSubscription(customerId, paymentData)
                   .then((subscription) => {
@@ -87,11 +85,11 @@ function postAch(req, res) {
                 .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
             });
           } else {
-            //createAchCharge
+//createAchCharge
             stripeAchPayment
               .createAchCharge(customerId, paymentData)
               .then((charge) => {
-                //Saving the data in MongoDB
+//Saving the data in MongoDB
                 new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                   .save()
                   .then(() => {
@@ -110,25 +108,25 @@ function postAch(req, res) {
             });
           }
         } else {
-          //New customer
-          ////Ach recurringPayment
+//New customer
+////Ach recurringPayment
           if (paymentData.status) {
-            //createPlan
+//createPlan
             stripeAchPayment
               .createPlan(paymentData)
               .then((plan) => {
-                //createAchCustomer
+//createAchCustomer
                 stripeAchPayment
                   .createAchCustomer(paymentData)
                   .then((customer) => {
-                    //verifyCustomer
+//verifyCustomer
                     stripeAchPayment
                       .verifyCustomer(customer)
                       .then((bankAccount) => {
-                        //createAchSubscription
+//createAchSubscription
                         stripeAchPayment.createAchSubscription(bankAccount.customer, paymentData)
                           .then((subscription) => {
-                            //Saving the data in MongoDB
+//Saving the data in MongoDB
                             new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                               .save()
                               .then(() => {
@@ -161,18 +159,18 @@ function postAch(req, res) {
                 .json({error: 'ERROR_WHILE_CREATING_PLAN'});
             });
           } else {
-            //Ach chargePayment
-            //createAchCustomer
+//Ach chargePayment
+//createAchCustomer
             stripeAchPayment
               .createAchCustomer(paymentData)
               .then((customer) => {
-                //verifyCustomer
+//verifyCustomer
                 stripeAchPayment.verifyCustomer(customer)
                   .then((bankAccount) => {
-                    //createAchCharge
+//createAchCharge
                     stripeAchPayment.createAchCharge(bankAccount.customer, paymentData)
                       .then((charge) => {
-                        //Saving the data in MongoDB
+//Saving the data in MongoDB
                         new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
@@ -215,18 +213,17 @@ function postCreditCard(req, res) {
   let paymentData = req.body;
   let paymentType = 'Card';
   let stripeStatus;
-  let searchDonation = new searchDonations();
   let stripeCardPayment = new stripeCard();
 
-  //Empty req.
+//Empty req.
   if (Object.keys(req.body).length === 0) {
     return res
       .status(400)
       .json({message: 'INVALID_BODY'});
   }
 
-  //Check the customer in MONGOdb
-  searchDonation
+//Check the customer in MONGOdb
+  donations
     .get(paymentData.email)
     .then(
       (data) => {
@@ -238,17 +235,17 @@ function postCreditCard(req, res) {
           console.log(customerId);
         }
 
-        //If customer exist
+//If customer exist
         if (stripeStatus) {
-          //Card recurringPayment
+//Card recurringPayment
           if (paymentData.status) {
-            //createPlan
+//createPlan
             stripeCardPayment.createPlan(paymentData)
               .then((plan) => {
-                //createCardSubscription
+//createCardSubscription
                 stripeCardPayment.createCardSubscription(customerId, paymentData)
                   .then((subscription) => {
-                    //Saving the data in MongoDB
+//Saving the data in MongoDB
                     new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                       .save().then(() => {
                       return res
@@ -270,10 +267,10 @@ function postCreditCard(req, res) {
                 .json({error: 'ERROR_WHILE_SAVING_DATA'});
             })
           } else {
-            //createCardCharge
+//createCardCharge
             stripeCardPayment
               .createCardCharge(customerId, paymentData).then((charge) => {
-              //Saving the data in MongoDB
+//Saving the data in MongoDB
               new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                 .save()
                 .then(() => {
@@ -292,22 +289,22 @@ function postCreditCard(req, res) {
             });
           }
         } else {
-          //New customer
-          //Card recurringPayment
+//New customer
+//Card recurringPayment
           if (paymentData.status) {
-            //createPlan
+//createPlan
             stripeCardPayment
               .createPlan(paymentData)
               .then((plan) => {
-                //createCardCustomer
+//createCardCustomer
                 stripeCardPayment
                   .createCardCustomer(paymentData)
                   .then((customer) => {
-                    //createCardSubscription
+//createCardSubscription
                     stripeCardPayment
                       .createCardSubscription(customer.id, paymentData)
                       .then((subscription) => {
-                        //Saving the data in MongoDB
+//Saving the data in MongoDB
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
@@ -335,16 +332,16 @@ function postCreditCard(req, res) {
                 .json({error: 'ERROR_WHILE_SAVING_DATA'});
             })
           } else {
-            //Card chargePayment
-            //createCardCustomer
+//Card chargePayment
+//createCardCustomer
             stripeCardPayment
               .createCardCustomer(paymentData)
               .then((customer) => {
-                //createCardCharge
+//createCardCharge
                 stripeCardPayment
                   .createCardCharge(customer.id, paymentData)
                   .then((charge) => {
-                    //Saving the data in MongoDB
+//Saving the data in MongoDB
                     new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                       .save().then(() => {
                       return res
