@@ -33,7 +33,8 @@ function get(emailId) {
     mongo
       .db
       .collection(this.collectionName)
-      .find({emailId:emailId}).toArray()
+      .find({emailId: emailId})
+      .toArray()
       .then((data) => {
         return resolve(data);
       })
