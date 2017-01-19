@@ -25,7 +25,6 @@ module.exports = router;
 //Payment gateway accepting amount in cents that's why we are multiplied by 100.
 
 function postAch(req, res) {
-  console.log('This is ACH')
   let customerId;
   let paymentData = req.body;
   let paymentType = 'Bank';
@@ -49,7 +48,6 @@ function postAch(req, res) {
         } else {
           stripeStatus = true;
           customerId = data[0].customerId;
-          console.log(customerId);
         }
 //If customer exist
         if (stripeStatus) {
@@ -58,25 +56,20 @@ function postAch(req, res) {
             stripeAchPayment
               .retriveAndUpdateCustomer(customerId, paymentData)
               .then((customer) => {
-                console.log('This is after retrive customer...')
 //createPlan
                 stripeAchPayment
                   .createPlan(paymentData)
                   .then((plan) => {
-                    console.log('This is after Plan customer...')
                     stripeAchPayment
                       .verifyCustomer(customer)
                       .then((bankAccount) => {
-                        console.log('This is VERIFY customer...')
 //createAchSubscription
                         stripeAchPayment
                           .createAchSubscription(customerId, paymentData)
                           .then((subscription) => {
-                            console.log('This is after subscrpition customer...')
                             new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                               .save()
                               .then(() => {
-                                console.log('This is after save data to DB...')
                                 return res
                                   .status(200)
                                   .json({message: 'succeeded'});
@@ -86,7 +79,6 @@ function postAch(req, res) {
                                 .json({error: 'ERROR_WHILE_SAVING_DATA'});
                             })
                           }).catch((err) => {
-                          console.log(err)
                           return res
                             .status(400)
                             .json({error: 'ERROR_WHILE_SUBSCRIPTION'});
@@ -102,33 +94,48 @@ function postAch(req, res) {
                     .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
                 });
               }).catch((err) => {
-              console.log(err)
               return res
                 .status(400)
                 .json({error: 'ERROR_WHILE_RETRIVING_CUSTOMER'});
             })
           } else {
-//createAchCharge
             stripeAchPayment
-              .createAchCharge(customerId, paymentData)
-              .then((charge) => {
+              .retriveAndUpdateCustomer(customerId, paymentData)
+              .then((customer) => {
+                stripeAchPayment
+                  .verifyCustomer(customer)
+                  .then((bankAccount) => {
+//createAchCharge
+                    stripeAchPayment
+                      .createAchCharge(customer.id, paymentData)
+                      .then((charge) => {
 //Saving the data in MongoDB
-                new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
-                  .save()
-                  .then(() => {
-                    return res
-                      .status(200)
-                      .json({message: 'succeeded'});
+                        new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
+                          .save()
+                          .then(() => {
+                            return res
+                              .status(200)
+                              .json({message: 'succeeded'});
+                          }).catch((err) => {
+                          return res
+                            .status(400)
+                            .json({error: 'ERROR_WHILE_SAVING_DATA'});
+                        })
+                      }).catch((err) => {
+                      return res
+                        .status(400)
+                        .json({error: 'ERROR_WHILE_VERIFY_CUSTOMER'});
+                    });
                   }).catch((err) => {
                   return res
                     .status(400)
-                    .json({error: 'ERROR_WHILE_SAVING_DATA'});
-                })
+                    .json({error: 'ERROR_WHILE_CHARGE_CUSTOMER'});
+                });
               }).catch((err) => {
               return res
                 .status(400)
-                .json({error: 'ERROR_WHILE_CHARGE_CUSTOMER'});
-            });
+                .json({error: 'ERROR_WHILE_SAVING_DATA'});
+            })
           }
         } else {
 //New customer
@@ -231,7 +238,6 @@ function postAch(req, res) {
 }
 
 function postCreditCard(req, res) {
-  console.log('This is CARD')
   let customerId;
   let paymentData = req.body;
   let paymentType = 'Card';
@@ -255,76 +261,93 @@ function postCreditCard(req, res) {
         } else {
           stripeStatus = true;
           customerId = data[0].customerId;
-          console.log(customerId);
         }
 
-        //If customer exist
+//If customer exist
         if (stripeStatus) {
-          //Card recurringPayment
+//Card recurringPayment
           if (paymentData.status) {
-            //createPlan
-            stripeCardPayment.createPlan(paymentData)
-              .then((plan) => {
-                //createCardSubscription
-                stripeCardPayment.createCardSubscription(customerId, paymentData)
-                  .then((subscription) => {
-                    //Saving the data in MongoDB
-                    new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
-                      .save().then(() => {
-                      return res
-                        .status(200)
-                        .json({message: 'succeeded'});
-                    }).catch((err) => {
+            stripeCardPayment
+              .retriveAndUpdateCustomer(customerId, paymentData)
+              .then((customer) => {
+//createPlan
+                stripeCardPayment.createPlan(paymentData)
+                  .then((plan) => {
+//createCardSubscription
+                    stripeCardPayment.createCardSubscription(customerId, paymentData)
+                      .then((subscription) => {
+//Saving the data in MongoDB
+                        new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
+                          .save().then(() => {
+                          return res
+                            .status(200)
+                            .json({message: 'succeeded'});
+                        }).catch((err) => {
+                          return res
+                            .status(400)
+                            .json({error: 'ERROR_WHILE_SAVING_DATA'});
+                        })
+                      }).catch((err) => {
                       return res
                         .status(400)
-                        .json({error: 'ERROR_WHILE_SAVING_DATA'});
+                        .json({error: 'ERROR_WHILE_SUBSCRIPTION'});
                     })
                   }).catch((err) => {
                   return res
                     .status(400)
-                    .json({error: 'ERROR_WHILE_SUBSCRIPTION'});
+                    .json({error: 'ERROR_WHILE_SAVING_DATA'});
                 })
               }).catch((err) => {
               return res
                 .status(400)
-                .json({error: 'ERROR_WHILE_SAVING_DATA'});
+                .json({error: 'ERROR_WHILE_VERIFYING_CUSTOMER'});
             })
+
           } else {
-            //createCardCharge
             stripeCardPayment
-              .createCardCharge(customerId, paymentData)
-              .then((charge) => {
-              //Saving the data in MongoDB
-              new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
-                .save()
-                .then(() => {
+              .retriveAndUpdateCustomer(customerId, paymentData)
+              .then((customer) => {
+//createCardCharge
+                stripeCardPayment
+                  .createCardCharge(customerId, paymentData)
+                  .then((charge) => {
+//Saving the data in MongoDB
+                    new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
+                      .save()
+                      .then(() => {
+                        return res
+                          .status(200)
+                          .json({message: 'succeeded'});
+                      }).catch((err) => {
+                      return res
+                        .status(400)
+                        .json({error: 'ERROR_WHILE_CHARGE_CUSTOMER'});
+                    })
+                  }).catch((err) => {
                   return res
-                    .status(200)
-                    .json({message: 'succeeded'});
-                }).catch((err) => {
-                return res
-                  .status(400)
-                  .json({error: 'ERROR_WHILE_CHARGE_CUSTOMER'});
-              })
-            }).catch((err) => {
+                    .status(400)
+                    .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
+                });
+
+              }).catch((err) => {
               return res
                 .status(400)
-                .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
-            });
+                .json({error: 'ERROR_WHILE_VERIFYING_CUSTOMER'});
+            })
           }
         } else {
-          //New customer
-          //Card recurringPayment
+//New customer
+//Card recurringPayment
           if (paymentData.status) {
-            //createPlan
+//createPlan
             stripeCardPayment
               .createPlan(paymentData)
               .then((plan) => {
-                //createCardCustomer
+//createCardCustomer
                 stripeCardPayment
                   .createCardCustomer(paymentData)
                   .then((customer) => {
-                    //createCardSubscription
+//createCardSubscription
                     stripeCardPayment
                       .createCardSubscription(customer.id, paymentData)
                       .then((subscription) => {

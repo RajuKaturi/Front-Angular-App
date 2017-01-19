@@ -133,8 +133,7 @@ function retriveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
       .customers
-      .retrieve(customerId, {
-      })
+      .retrieve(customerId, {})
       .then((customer) => {
         stripe
           .customers

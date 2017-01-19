@@ -16,6 +16,7 @@ StripeCradAccessLayer.prototype.createCardCharge = createCardCharge;
 StripeCradAccessLayer.prototype.createMetaData = createMetaData;
 StripeCradAccessLayer.prototype.createCardSubscription = createCardSubscription;
 StripeCradAccessLayer.prototype.createPlan = createPlan;
+StripeCradAccessLayer.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
 
 //createCardCustomer
 function createCardCustomer(paymentData) {
@@ -92,4 +93,26 @@ function createMetaData(paymentData) {
     phoneNumber: paymentData.phoneNumber
   };
   return metadata;
+}
+
+
+//retrive Customer.
+function retriveAndUpdateCustomer(customerId, paymentData) {
+  return new Promise((resolve, reject) => {
+    stripe
+      .customers
+      .retrieve(customerId, {})
+      .then((customer) => {
+        stripe
+          .customers
+          .update(customer.id, {
+            source: paymentData.data.id
+          })
+          .then((customer) => {
+            return resolve(customer);
+          })
+          .catch(reject);
+      })
+      .catch(reject);
+  });
 }

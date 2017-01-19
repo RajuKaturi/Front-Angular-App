@@ -11,6 +11,7 @@ StripeCard.prototype.createCardCustomer = createCardCustomer;
 StripeCard.prototype.createCardCharge = createCardCharge;
 StripeCard.prototype.createCardSubscription = createCardSubscription;
 StripeCard.prototype.createPlan = createPlan;
+StripeCard.prototype.retriveAndUpdateCustomer = retriveAndUpdateCustomer;
 
 //createCardCustomer
 function createCardCustomer(paymentData) {
@@ -52,4 +53,15 @@ function createPlan(paymentData) {
       .then(resolve)
       .catch(reject);
   });
+}
+
+
+function retriveAndUpdateCustomer(customerId, paymentData) {
+  return new Promise((resolve, reject) => {
+    new StripeCradAccessLayer()
+      .retriveAndUpdateCustomer(customerId, paymentData)
+      .then(resolve)
+      .catch(reject);
+  });
+
 }
