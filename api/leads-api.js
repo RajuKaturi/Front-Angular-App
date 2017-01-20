@@ -25,12 +25,35 @@ function postLead(req, res) {
   let user = new User(req.body);
 
   user
-    .save()
-    .then((lead) => {
-      res.status(200).json({message: 'Leads added succesfully'});
+    .isEmailExists()
+    .then((response) => {
+       if(response.length !== 0) {
+        user
+          .update(response[0]._id)
+          .then((data) => {
+            res.status(200).json({message: "Record Updated Succesfully"});
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).json({message: 'DB_ERROR ON UPDATE'});
+          })
+      } else {
+        user
+          .save()
+          .then((lead) => {
+            res.status(200).json({message: 'Leads added succesfully'});
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).json({message: 'DB_ERROR ON SAVE'});
+          });
+      }
     })
     .catch((err) => {
       console.log(err);
-      res.status(500).json({message: 'DB_ERROR'});
-    });
+      res.status(500).json({message: err});
+    })
+
+
+
 }
