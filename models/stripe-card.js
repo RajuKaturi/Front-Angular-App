@@ -23,7 +23,6 @@ function createCardCustomer(paymentData) {
 }
 
 function createCardCharge(customerId, paymentData) {
-  console.log(customerId)
   return new Promise((resolve, reject) => {
     new StripeCradAccessLayer()
       .createCardCharge(customerId, paymentData)

@@ -42,7 +42,6 @@ function verifyCustomer(customer) {
 }
 
 function createAchCharge(customerId, paymentData) {
-  console.log(customerId)
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
       .createAchCharge(customerId, paymentData)

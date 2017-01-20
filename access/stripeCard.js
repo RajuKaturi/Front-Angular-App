@@ -31,7 +31,6 @@ function createCardCustomer(paymentData) {
 }
 
 function createCardCharge(customerId, paymentData) {
-  console.log(customerId)
   return new Promise((resolve, reject) => {
     stripe.charges.create({
       amount: paymentData.amount * 100,

@@ -69,7 +69,6 @@ function verifyCustomer(customer) {
 }
 
 function createAchCharge(customerId, paymentData) {
-  console.log(customerId)
   return new Promise((resolve, reject) => {
     stripe
       .charges

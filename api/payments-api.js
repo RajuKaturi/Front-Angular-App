@@ -93,7 +93,6 @@ function postAch(req, res) {
                         .json({error: 'ERROR_WHILE_VERIFYING_CUSTOMER'});
                     });
                   }).catch((err) => {
-                  console.log(err)
                   return res
                     .status(400)
                     .json({error: 'ERROR_WHILE_CREATING_PLAN'});
@@ -131,7 +130,6 @@ function postAch(req, res) {
                         .json({error: 'ERROR_WHILE_CREATING_CHARGE'});
                     });
                   }).catch((err) => {
-                  console.log(err);
                   return res
                     .status(400)
                     .json({error: 'ERROR_WHILE_VERIFY_CUSTOMER'});
