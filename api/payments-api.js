@@ -1,7 +1,5 @@
 'use strict';
 
-const ach = require('../models/ach');
-const config = require('../access/config');
 const express = require('express');
 const router = express.Router();
 const request = require('request');
