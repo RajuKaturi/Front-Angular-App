@@ -21,7 +21,6 @@ module.exports = router;
 // res means responce we are sending to the front end as a responce for received request.
 // 200 code is for sucess- As the payment gateway & MongoDb is giving sucuess responce as 'String' .
 // 400 code is for failure- As the payment gateway & MongoDb is giving failure responce as 'String'.
-//Payment gateway accepting amount in cents that's why we are multiplied by 100.
 
 function postAch(req, res) {
   let customerId;

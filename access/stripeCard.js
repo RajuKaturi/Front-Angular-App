@@ -8,6 +8,8 @@ let interval = config.stripe.interval;
 
 module.exports = StripeCradAccessLayer;
 
+//Payment gateway accepting amount in cents that's why we are multiplying the given amount by 100.
+
 function StripeCradAccessLayer() {
 }
 
