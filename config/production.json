@@ -10,15 +10,6 @@
         "name": "ifg_leads",
         "options": null
       },
-
-      "creditCard": {
-        "name": "ifg_CreditCard",
-        "options": null
-      },
-      "ach": {
-        "name": "ifg_Ach",
-        "options": null
-      },
       "donations": {
         "name": "ifg_donations",
         "options": null
@@ -33,6 +24,6 @@
   "stripe": {
     "stripeKey": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
     "currency": "usd",
-    "interval":"day"
+    "interval": "day"
   }
 }

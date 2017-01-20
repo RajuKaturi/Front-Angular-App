@@ -13,17 +13,30 @@ function Donations(init, paymentType) {
   this.firstName = String(init.metadata.firstName || '');
   this.lastName = String(init.metadata.lastName || '');
   this.customerId = String(init.customer || '');
-  this.emailId = String(init.metadata.Email || '');
+  this.emailId = String(init.metadata.email || '');
   this.paymentType = paymentType;
   this.responseObj = init;
 }
 
 Donations.prototype.save = save;
+Donations.get = get;
+
 function save() {
   return new Promise((resolve, reject) => {
     new donationsDb()
       .save(this)
       .then(resolve)
+      .catch(reject);
+  });
+}
+
+function get(emailId) {
+  return new Promise((resolve, reject) => {
+    new donationsDb()
+      .get(emailId)
+      .then((data) => {
+        return resolve(data);
+      })
       .catch(reject);
   });
 }
