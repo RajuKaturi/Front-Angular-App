@@ -19,7 +19,6 @@ const routes = require('./api');
 new Main();
 
 /**
- *
  * @constructor
  */
 function Main() {

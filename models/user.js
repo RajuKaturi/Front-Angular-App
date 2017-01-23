@@ -19,7 +19,6 @@ User.prototype.save = save;
 User.prototype.isEmailExists = isEmailExists;
 User.prototype.update = update;
 
-//////////
 function save() {
   return new Promise((resolve, reject) => {
     new UserDb()
@@ -29,7 +28,6 @@ function save() {
   });
 }
 
-//////////
 function isEmailExists() {
   return new Promise((resolve, reject) => {
     new UserDb()
@@ -41,7 +39,6 @@ function isEmailExists() {
   });
 }
 
-/////////
 function update(_id) {
   return new Promise((resolve, reject) => {
     new UserDb()

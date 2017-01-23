@@ -10,7 +10,6 @@ router.post('/lead', postLead);
 
 module.exports = router;
 
-//////////
 function postLead(req, res) {
 
   if (Object.keys(req.body).length === 0) {
@@ -53,7 +52,4 @@ function postLead(req, res) {
       console.log(err);
       res.status(500).json({message: err});
     })
-
-
-
 }
