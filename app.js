@@ -16,7 +16,13 @@ const path = require('path');
 const request = require('request');
 const routes = require('./api');
 
-new (function () {
+new Main();
+
+/**
+ *
+ * @constructor
+ */
+function Main() {
   app.use(cors());
   app.use(helmet());
 
@@ -80,7 +86,11 @@ new (function () {
       console.log('Unable to start server due to MonoDb initialization error'.red);
       console.error(err);
     });
-})();
+}
+
+Main.prototype.onError = onError;
+Main.prototype.normalizePort = normalizePort;
+Main.prototype.onListening = onListening;
 
 //////////
 /**
