@@ -148,7 +148,8 @@ function postAch(req, res) {
                     stripeAchPayment
                       .verifyCustomer(customer)
                       .then((bankAccount) => {
-                        stripeAchPayment.createAchSubscription(bankAccount.customer, paymentData)
+                        stripeAchPayment
+                          .createAchSubscription(bankAccount.customer, paymentData)
                           .then((subscription) => {
                             new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                               .save()
@@ -188,7 +189,8 @@ function postAch(req, res) {
               .then((customer) => {
                 stripeAchPayment.verifyCustomer(customer)
                   .then((bankAccount) => {
-                    stripeAchPayment.createAchCharge(bankAccount.customer, paymentData)
+                    stripeAchPayment
+                      .createAchCharge(bankAccount.customer, paymentData)
                       .then((charge) => {
                         new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
@@ -266,7 +268,8 @@ function postCreditCard(req, res) {
               .then((retrieveAndUpdateCustomer) => {
                 stripeCardPayment.createPlan(paymentData)
                   .then((plan) => {
-                    stripeCardPayment.createCardSubscription(customerId, paymentData)
+                    stripeCardPayment
+                      .createCardSubscription(customerId, paymentData)
                       .then((subscription) => {
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save().then(() => {
