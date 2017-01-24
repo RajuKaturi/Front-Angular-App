@@ -3,6 +3,16 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
+const winston = require('winston');
+let logfile = './access/leadLogs.log';
+
+winston.configure({
+  transports: [
+    new (winston.transports.File) ({ filename: logfile})
+  ]
+});
+winston.level = 'error';
+winston.level = 'info';
 
 /* GET api home page. */
 // API to add user
@@ -30,26 +40,28 @@ function postLead(req, res) {
         user
           .update(response[0]._id)
           .then((data) => {
+            winston.info('Record Updated Succesfully');
             res.status(200).json({message: "Record Updated Succesfully"});
           })
           .catch((err) => {
-            console.log(err);
+            winston.error('message:',err);
             res.status(500).json({message: 'DB_ERROR ON UPDATE'});
           })
       } else {
         user
           .save()
           .then((lead) => {
+            winston.info('leads added succesfully');
             res.status(200).json({message: 'Leads added succesfully'});
           })
           .catch((err) => {
-            console.log(err);
+            winston.error('message:',err);
             res.status(500).json({message: 'DB_ERROR ON SAVE'});
           });
       }
     })
     .catch((err) => {
-      console.log(err);
+      winston.error('message:',err);
       res.status(500).json({message: err});
     })
 }
