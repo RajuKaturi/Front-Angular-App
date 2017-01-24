@@ -44,28 +44,28 @@ function postLead(req, res) {
     .isEmailExists()
     .then((response) => {
        if(response.length !== 0) {
-        user
-          .update(response[0]._id)
-          .then((data) => {
-            winston.info('Record Updated Succesfully');
-            res.status(200).json({message: "Record Updated Succesfully"});
-          })
-          .catch((err) => {
-            winston.error('message:',err);
-            res.status(500).json({message: 'DB_ERROR ON UPDATE'});
-          })
-      } else {
-        user
-          .save()
-          .then((lead) => {
-            winston.info('leads added succesfully');
-            res.status(200).json({message: 'Leads added succesfully'});
-          })
-          .catch((err) => {
-            winston.error('message:',err);
-            res.status(500).json({message: 'DB_ERROR ON SAVE'});
-          });
-      }
+          user
+            .update(response[0]._id)
+            .then((data) => {
+              winston.info('Record Updated Succesfully');
+              res.status(200).json({message: "Record Updated Succesfully"});
+            })
+            .catch((err) => {
+              winston.error('message:',err);
+              res.status(500).json({message: 'DB_ERROR ON UPDATE'});
+            })
+       } else {
+          user
+            .save()
+            .then((lead) => {
+              winston.info('leads added succesfully');
+              res.status(200).json({message: 'Leads added succesfully'});
+            })
+            .catch((err) => {
+              winston.error('message:',err);
+              res.status(500).json({message: 'DB_ERROR ON SAVE'});
+            });
+       }
     })
     .catch((err) => {
       winston.error('message:',err);
