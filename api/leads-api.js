@@ -4,13 +4,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
 const winston = require('winston');
-let logfile = './access/leadLogs.log';
 
-winston.configure({
-  transports: [
-    new (winston.transports.File) ({ filename: logfile})
-  ]
-});
 winston.level = 'error';
 winston.level = 'info';
 
@@ -21,8 +15,21 @@ router.post('/lead', postLead);
 module.exports = router;
 
 function postLead(req, res) {
+  try {
+    var logfile = './access/leadLogs.log';
+  }
+  catch (error) {
+    winston.error('LEAD_LOG_FILE_NOT_FOUND');
+  }
+
+  winston.configure({
+    transports: [
+      new (winston.transports.File) ({ filename: logfile})
+    ]
+  });
 
   if (Object.keys(req.body).length === 0) {
+    winston.error('INVALID_BODY');
     return res
       .status(422)
       .json({
