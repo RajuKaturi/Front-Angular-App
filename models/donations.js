@@ -19,7 +19,7 @@ function Donations(init, paymentType) {
 }
 
 Donations.prototype.save = save;
-Donations.get = get;
+Donations.getRecordByEmail = getRecordByEmail;
 
 function save() {
   return new Promise((resolve, reject) => {
@@ -30,10 +30,10 @@ function save() {
   });
 }
 
-function get(emailId) {
+function getRecordByEmail(emailId) {
   return new Promise((resolve, reject) => {
     new donationsDb()
-      .get(emailId)
+      .getRecordByEmail(emailId)
       .then((data) => {
         return resolve(data);
       })

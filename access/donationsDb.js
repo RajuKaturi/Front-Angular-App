@@ -12,7 +12,7 @@ function DonationsDb() {
 }
 
 DonationsDb.prototype.save = save;
-DonationsDb.prototype.get = get;
+DonationsDb.prototype.getRecordByEmail = getRecordByEmail;
 
 function save(entity) {
   return new Promise((resolve, reject) => {
@@ -28,7 +28,7 @@ function save(entity) {
   });
 }
 
-function get(emailId) {
+function getRecordByEmail(emailId) {
   return new Promise((resolve, reject) => {
     mongo
       .db
