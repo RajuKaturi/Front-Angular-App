@@ -311,16 +311,17 @@ function postCreditCard(req, res) {
         if (stripeStatus) {
           if (paymentData.status) {
             stripeCardPayment
-              .retrieveAndUpdateCustomer(customerId, paymentData)
-              .then((retrieveAndUpdateCustomer) => {
+              .createCardCustomer(paymentData)
+              .then((customer) => {
                 stripeCardPayment.createPlan(paymentData)
                   .then((plan) => {
                     stripeCardPayment
-                      .createCardSubscription(customerId, paymentData)
+                      .createCardSubscription(customer.id, paymentData)
                       .then((subscription) => {
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
+                            console.log('This is after create customer')
                             log.info('EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS');
                             return res
                               .status(200)
