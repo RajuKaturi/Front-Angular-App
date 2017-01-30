@@ -60,7 +60,7 @@ function postAch(req, res) {
           //Ach recurringPayment
           if (paymentData.status) {
             stripeAchPayment
-              .retrieveAndUpdateCustomer(customerId, paymentData)
+              .createAchCustomer(paymentData)
               .then((retrieveAndUpdateCustomer) => {
                 stripeAchPayment
                   .createPlan(paymentData)
@@ -116,13 +116,13 @@ function postAch(req, res) {
           } else {
             //Ach chargePayment
             stripeAchPayment
-              .retrieveAndUpdateCustomer(customerId, paymentData)
-              .then((retrieveAndUpdateCustomer) => {
+              .retrieveAndUpdateCustomer(customerId)
+              .then((customer) => {
                 stripeAchPayment
-                  .verifyCustomer(retrieveAndUpdateCustomer)
-                  .then((bankAccount) => {
+                  .createSource(customerId, paymentData)
+                  .then((source) => {
                     stripeAchPayment
-                      .createAchCharge(bankAccount.customer, paymentData)
+                      .verifyCustomerAndCharge(customer, paymentData, source.id)
                       .then((charge) => {
                         new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
@@ -147,13 +147,63 @@ function postAch(req, res) {
                       });
                   })
                   .catch((err) => {
-                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
-                    return res
-                      .status(400)
-                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                    console.log(err)
+                    if (err.statusCode === 400) {
+                      //Ach chargePayment
+                      stripeAchPayment
+                        .createAchCustomer(paymentData)
+                        .then((customer) => {
+                          stripeAchPayment.verifyCustomer(customer)
+                            .then((bankAccount) => {
+                              stripeAchPayment
+                                .createAchCharge(bankAccount.customer, paymentData)
+                                .then((charge) => {
+                                  new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
+                                    .save()
+                                    .then(() => {
+                                      log.info('NEW_CUSTOMER_ACH_CHARGE_SUCCESS');
+                                      return res
+                                        .status(200)
+                                        .json({message: 'NEW_CUSTOMER_ACH_CHARGE_SUCCESS'});
+                                    })
+                                    .catch((err) => {
+                                      log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_SAVING_DATA');
+                                      return res
+                                        .status(400)
+                                        .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_SAVING_DATA'});
+                                    })
+                                })
+                                .catch((err) => {
+                                  log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE');
+                                  return res
+                                    .status(400)
+                                    .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
+                                });
+                            })
+                            .catch((err) => {
+                              log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
+                              return res
+                                .status(400)
+                                .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                            });
+                        })
+                        .catch((err) => {
+                          log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
+                          return res
+                            .status(400)
+                            .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER'});
+                        });
+
+
+                    }
+
                   });
+
+
               })
               .catch((err) => {
+
+
                 log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
                 return res
                   .status(400)
@@ -359,20 +409,20 @@ function postCreditCard(req, res) {
             stripeCardPayment
               .retrieveAndUpdateCustomer(customerId, paymentData)
               .then((retrieveAndUpdateCustomer) => {
-                    new donations(retrieveAndUpdateCustomer, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
-                      .save()
-                      .then(() => {
-                        log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
-                        return res
-                          .status(200)
-                          .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
-                      })
-                      .catch((err) => {
-                        log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
-                        return res
-                          .status(400)
-                          .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
-                      })
+                new donations(retrieveAndUpdateCustomer, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
+                  .save()
+                  .then(() => {
+                    log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
+                    return res
+                      .status(200)
+                      .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+                  })
               })
               .catch((err) => {
 
@@ -453,7 +503,6 @@ function postCreditCard(req, res) {
                       });
                   })
                   .catch((err) => {
-                  console.log(err)
                     log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE');
                     return res
                       .status(400)

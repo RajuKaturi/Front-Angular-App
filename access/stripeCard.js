@@ -110,6 +110,5 @@ function retrieveAndUpdateCustomer(customerId, paymentData) {
           }).catch(reject);
           })
           .catch(reject);
-
   });
 }
