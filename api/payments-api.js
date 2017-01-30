@@ -361,10 +361,7 @@ function postCreditCard(req, res) {
             stripeCardPayment
               .retrieveAndUpdateCustomer(customerId, paymentData)
               .then((retrieveAndUpdateCustomer) => {
-                stripeCardPayment
-                  .createCardCharge(customerId, paymentData)
-                  .then((charge) => {
-                    new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
+                    new donations(retrieveAndUpdateCustomer, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                       .save()
                       .then(() => {
                         log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
@@ -378,14 +375,6 @@ function postCreditCard(req, res) {
                           .status(400)
                           .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
                       })
-                  })
-                  .catch((err) => {
-                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_CREATING_CHARGE');
-                    return res
-                      .status(400)
-                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_CREATING_CHARGE'});
-                  });
-
               })
               .catch((err) => {
                 log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
