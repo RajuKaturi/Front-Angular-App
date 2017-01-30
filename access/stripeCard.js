@@ -94,20 +94,22 @@ function createMetaData(paymentData) {
 
 function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-    stripe
-      .customers
-      .retrieve(customerId, {})
-      .then((customer) => {
         stripe
           .customers
-          .update(customer.id, {
+          .createSource(customerId, {
             source: paymentData.data.id
-          })
-          .then((customer) => {
+          }).then((newCustomerToken) => {
+          stripe.charges.create({
+            amount: paymentData.amount * 100,
+            currency: currency,
+            customer: customerId,
+            source: newCustomerToken.id,
+            metadata: createMetaData(paymentData)
+          }).then((customer) => {
             return resolve(customer);
+          }).catch(reject);
           })
           .catch(reject);
-      })
-      .catch(reject);
+
   });
 }
