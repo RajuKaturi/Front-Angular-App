@@ -88,7 +88,6 @@ function postAch(req, res) {
                               });
                           })
                           .catch((err) => {
-                          console.log(err)
                             log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION');
                             return res
                               .status(400)
@@ -313,12 +312,12 @@ function postCreditCard(req, res) {
         if (stripeStatus) {
           if (paymentData.status) {
             stripeCardPayment
-              .retrieveAndUpdateCustomer(customerId, paymentData)
+              .createCardCustomer(paymentData)
               .then((retrieveAndUpdateCustomer) => {
                 stripeCardPayment.createPlan(paymentData)
                   .then((plan) => {
                     stripeCardPayment
-                      .createCardSubscription(customerId, paymentData)
+                      .createCardSubscription(retrieveAndUpdateCustomer.id, paymentData)
                       .then((subscription) => {
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
