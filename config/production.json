@@ -25,5 +25,35 @@
     "stripeKey": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
     "currency": "usd",
     "interval": "day"
+  },
+  "logging": {
+    "transports": [
+      {
+        "type": "File",
+        "options": {
+          "name": "diagnostics",
+          "filename": "./if-gathering.diagnostics.log",
+          "level": "info",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "File",
+        "options": {
+          "name": "errors",
+          "filename": "./if-gathering.errors.log",
+          "level": "warn",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "Console",
+        "options": {
+          "colorize": true,
+          "level": "info",
+          "label": "IF-SERVER"
+        }
+      }
+    ]
   }
 }

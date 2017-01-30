@@ -28,5 +28,35 @@
   },
   "headers": {
     "Access-Control-Allow-Origin": "*"
+  },
+  "logging": {
+    "transports": [
+      {
+        "type": "File",
+        "options": {
+          "name": "diagnostics",
+          "filename": "./if-gathering.diagnostics.log",
+          "level": "silly",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "File",
+        "options": {
+          "name": "errors",
+          "filename": "./if-gathering.errors.log",
+          "level": "warn",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "Console",
+        "options": {
+          "colorize": true,
+          "level": "silly",
+          "label": "IF-SERVER"
+        }
+      }
+    ]
   }
 }

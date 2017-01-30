@@ -1,18 +1,12 @@
 'use strict';
 
-const express = require('express');
-const router = express.Router();
-const request = require('request');
 const donations = require('../models/donations');
-const stripeCard = require('../models/stripe-card');
+const express = require('express');
+const log = require('../access/log');
+const request = require('request');
+const router = express.Router();
 const stripeAch = require('../models/stripe-ach');
-
-let winston = require('winston');
-winston.configure({
-  transports: [
-    new (winston.transports.File)({filename: 'loggers.log'})
-  ]
-});
+const stripeCard = require('../models/stripe-card');
 
 // API for  ACH payment
 router.post('/ach', postAch);
@@ -35,7 +29,8 @@ function postAch(req, res) {
 
   //Empty req.
   if (Object.keys(req.body).length === 0) {
-    winston.info('INVALID_BODY');
+    log.info(`INVALID_BODY: ${JSON.parse(req.body)}`);
+
     return res
       .status(400)
       .json({message: 'INVALID_BODY'});
@@ -79,40 +74,45 @@ function postAch(req, res) {
                             new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                               .save()
                               .then(() => {
-                                winston.info('EXISTING_CUSTOMER_ACH_RECURRING_SUCCESS');
+                                log.info('EXISTING_CUSTOMER_ACH_RECURRING_SUCCESS');
                                 return res
                                   .status(200)
                                   .json({message: 'EXISTING_CUSTOMER_ACH_RECURRING_SUCCESS'});
-                              }).catch((err) => {
-                              winston.info('ERROR_WHILE_SAVING_EXISTING_CUSTOMER_ACH_RECURRING_DATA');
-                              return res
-                                .status(400)
-                                .json({error: 'ERROR_WHILE_SAVING_EXISTING_CUSTOMER_ACH_RECURRING_DATA'});
-                            })
-                          }).catch((err) => {
-                          winston.info('ERROR_WHILE_EXISTING_CUSTOMER_ACH_SUBSCRIPTION');
-                          return res
-                            .status(400)
-                            .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_SUBSCRIPTION'});
-                        });
-                      }).catch((err) => {
-                      winston.info('ERROR_WHILE_VERIFY_EXISTING_CUSTOMER_ACH_RECURRING');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_VERIFY_EXISTING_CUSTOMER_ACH_RECURRING'});
-                    });
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_CREATING_EXISTING_CUSTOMER_ACH_RECURRING_PLAN');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_CREATING_EXISTING_CUSTOMER_ACH_RECURRING_PLAN'});
-                });
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_ACH_RECURRING');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_ACH_RECURRING'});
-            })
+                              })
+                              .catch((err) => {
+                                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_SAVING_DATA');
+                                return res
+                                  .status(400)
+                                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_SAVING_DATA'});
+                              });
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_SUBSCRIPTION');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
+                          });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_VERIFYING_CUSTOMER');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_VERIFYING_CUSTOMER'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_CREATING_PLAN');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_CREATING_PLAN'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_RETRIEVE_UPDATE_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_RECURRING_RETRIEVE_UPDATE_CUSTOMER'});
+              });
           } else {
             //Ach chargePayment
             stripeAchPayment
@@ -127,34 +127,38 @@ function postAch(req, res) {
                         new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
-                            winston.info('EXISTING_CUSTOMER_ACH_CHARGE_SUCCESS');
+                            log.info('EXISTING_CUSTOMER_ACH_CHARGE_SUCCESS');
                             return res
                               .status(200)
                               .json({message: 'EXISTING_CUSTOMER_ACH_CHARGE_SUCCESS'});
-                          }).catch((err) => {
-                          winston.info('ERROR_WHILE_SAVING_EXISTING_CUSTOMER_ACH_CHARGE_DATA');
-                          return res
-                            .status(400)
-                            .json({error: 'ERROR_WHILE_SAVING_EXISTING_CUSTOMER_ACH_CHARGE_DATA'});
-                        })
-                      }).catch((err) => {
-                      winston.info('ERROR_WHILE_CREATING_EXISTING_CUSTOMER_ACH_CHARGE');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_CREATING_EXISTING_CUSTOMER_ACH_CHARGE'});
-                    });
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_VERIFY_EXISTING_CUSTOMER_ACH_CHARGE');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_VERIFY_EXISTING_CUSTOMER_ACH_CHARGE'});
-                });
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_ACH_CHARGE_RETRIEVE');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_ACH_CHARGE_RETRIEVE'});
-            })
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_SAVING_DATA');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_SAVING_DATA'});
+                          });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CHARGE');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_RETRIEVE_UPDATE_CUSTOMER'});
+              });
           }
         } else {
           //New customer recurringPayment
@@ -174,40 +178,45 @@ function postAch(req, res) {
                             new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                               .save()
                               .then(() => {
-                                winston.info('NEW_CUSTOMER_ACH_RECURRING_SUCCESS');
+                                log.info('NEW_CUSTOMER_ACH_RECURRING_SUCCESS');
                                 return res
                                   .status(200)
                                   .json({message: 'NEW_CUSTOMER_ACH_RECURRING_SUCCESS'});
-                              }).catch((err) => {
-                              winston.info('ERROR_WHILE_SAVING_NEW_CUSTOMER_ACH_RECURRING_DATA');
-                              return res
-                                .status(400)
-                                .json({error: 'ERROR_WHILE_SAVING_NEW_CUSTOMER_ACH_RECURRING_DATA'});
-                            })
-                          }).catch((err) => {
-                          winston.info('ERROR_WHILE_NEW_CUSTOMER_ACH_SUBSCRIPTION');
-                          return res
-                            .status(400)
-                            .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_SUBSCRIPTION'});
-                        });
-                      }).catch((err) => {
-                      winston.info('ERROR_WHILE_VERIFY_NEW_CUSTOMER_ACH_RECURRING');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_VERIFY_NEW_CUSTOMER_ACH_RECURRING'});
-                    });
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_RECURRING');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_RECURRING'});
-                });
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_RECURRING_PLAN');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_RECURRING_PLAN'});
-            });
+                              })
+                              .catch((err) => {
+                                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SAVING_DATA');
+                                return res
+                                  .status(400)
+                                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SAVING_DATA'});
+                              });
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
+                          });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_PLAN');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_PLAN'});
+              });
           } else {
             //Ach chargePayment
             stripeAchPayment
@@ -221,39 +230,43 @@ function postAch(req, res) {
                         new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
-                            winston.info('NEW_CUSTOMER_ACH_CHARGE_SUCCESS');
+                            log.info('NEW_CUSTOMER_ACH_CHARGE_SUCCESS');
                             return res
                               .status(200)
                               .json({message: 'NEW_CUSTOMER_ACH_CHARGE_SUCCESS'});
-                          }).catch((err) => {
-                          winston.info('ERROR_WHILE_SAVING_NEW_CUSTOMER_ACH_CHARGE_DATA');
-                          return res
-                            .status(400)
-                            .json({error: 'ERROR_WHILE_SAVING_NEW_CUSTOMER_ACH_CHARGE_DATA'});
-                        })
-                      }).catch((err) => {
-                      winston.info('ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_CHARGE');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_CHARGE'});
-                    });
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_VERIFY_NEW_CUSTOMER_ACH_CHARGE');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_VERIFY_NEW_CUSTOMER_ACH_CHARGE'});
-                });
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_CHARGE');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_CREATING_NEW_CUSTOMER_ACH_CHARGE'});
-            });
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_SAVING_DATA');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_SAVING_DATA'});
+                          })
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER'});
+              });
           }
         }
       })
     .catch((err) => {
-      winston.info('DATABASE_ERROR');
+      log.info('DATABASE_ERROR');
       return res
         .status(400)
         .json({error: 'DATABASE_ERROR'});
@@ -269,7 +282,7 @@ function postCreditCard(req, res) {
 
   //Empty req.
   if (Object.keys(req.body).length === 0) {
-    winston.info('INVALID_BODY');
+    log.info('INVALID_BODY');
     return res
       .status(400)
       .json({message: 'INVALID_BODY'});
@@ -287,7 +300,7 @@ function postCreditCard(req, res) {
           if (data[0].customerId !== '') {
             customerId = data[0].customerId;
           } else {
-            winston.info('ERROR_WHILE_CHEKING_CUSTOMERID');
+            log.info('ERROR_WHILE_GETTING_DATA');
             return res
               .status(400)
               .json({error: 'ERROR_WHILE_CHEKING_CUSTOMERID'});
@@ -306,36 +319,40 @@ function postCreditCard(req, res) {
                       .createCardSubscription(customerId, paymentData)
                       .then((subscription) => {
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
-                          .save().then(() => {
-                          winston.info('EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS');
-                          return res
-                            .status(200)
-                            .json({message: 'EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS'});
-                        }).catch((err) => {
-                          winston.info('ERROR_WHILE_SAVING_EXISTING_CUSTOMER_CARD_RECURRING_DATA');
-                          return res
-                            .status(400)
-                            .json({error: 'ERROR_WHILE_SAVING_EXISTING_CUSTOMER_CARD_RECURRING_DATA'});
-                        })
-                      }).catch((err) => {
-                      winston.info('ERROR_WHILE_CREATING_EXISTING_CUSTOMER_CARD_RECURRING');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_CREATING_EXISTING_CUSTOMER_CARD_RECURRING'});
-                    })
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_CREATING_EXISTING_CUSTOMER_CARD_RECURRING_PLAN');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_CREATING_EXISTING_CUSTOMER_CARD_RECURRING_PLAN'});
-                })
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_CARD_RECURRING');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_CARD_RECURRING'});
-            })
-
+                          .save()
+                          .then(() => {
+                            log.info('EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS');
+                            return res
+                              .status(200)
+                              .json({message: 'EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS'});
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SAVING_DATA');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
+                          });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_PAYMENT_UPDATE_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_RETRIEVE_UPDATE_CUSTOMER'});
+              });
           } else {
             //Card charge
             stripeCardPayment
@@ -347,29 +364,32 @@ function postCreditCard(req, res) {
                     new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                       .save()
                       .then(() => {
-                        winston.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
+                        log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
                         return res
                           .status(200)
                           .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
-                      }).catch((err) => {
-                      winston.info('ERROR_WHILE_SAVING_EXISTING_CUSTOMER_CARD_CHARGE_DATA');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_SAVING_EXISTING_CUSTOMER_CARD_CHARGE_DATA'});
-                    })
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_CREATING_EXISTING_CUSTOMER_CARD_CHARGE');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_CREATING_EXISTING_CUSTOMER_CARD_CHARGE'});
-                });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+                      })
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_CREATING_CHARGE');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_CREATING_CHARGE'});
+                  });
 
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_UPDATE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE'});
-            })
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER'});
+              });
           }
         } else {
           //New customer recurringPayment
@@ -386,34 +406,38 @@ function postCreditCard(req, res) {
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
-                            winston.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
+                            log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
                             return res
                               .status(200)
                               .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
-                          }).catch((err) => {
-                          winston.info('ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_RECURRING_DATA');
-                          return res
-                            .status(400)
-                            .json({error: 'ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_RECURRING_DATA'});
-                        })
-                      }).catch((err) => {
-                      winston.info('ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_RECURRING');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_RECURRING'});
-                    })
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_RECURRING');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_RECURRING'});
-                });
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_CREATING_NEW_CUSTOMER_CARD_RECURRING_PLAN');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_CREATING_NEW_CUSTOMER_CARD_RECURRING_PLAN'});
-            })
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
+                          });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_PAYMENT_CUSTOMER');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_CUSTOMER'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
+              });
           } else {
             //Card chargePayment
             stripeCardPayment
@@ -423,35 +447,40 @@ function postCreditCard(req, res) {
                   .createCardCharge(customer.id, paymentData)
                   .then((charge) => {
                     new donations(charge, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
-                      .save().then(() => {
-                      winston.info('NEW_CUSTOMER_CARD_CHARGE_SUCCESS');
-                      return res
-                        .status(200)
-                        .json({message: 'NEW_CUSTOMER_CARD_CHARGE_SUCCESS'});
-                    }).catch((err) => {
-                      winston.info('ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_CHARGE_DATA');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_SAVING_NEW_CUSTOMER_CARD_CHARGE_DATA'});
-                    })
-                  }).catch((err) => {
-                  winston.info('ERROR_WHILE_CREATING_NEW_CUSTOMER_CARD_CHARGE');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_CREATING_NEW_CUSTOMER_CARD_CHARGE'});
-                });
-              }).catch((err) => {
-              winston.info('ERROR_WHILE_CREATING_NEW_CUSTOMER_CARD_CHARGE');
-              return res
-                .status(400)
-                .json({error: 'ERROR_WHILE_CREATING_NEW_CUSTOMER_CARD_CHARGE'});
-            });
+                      .save()
+                      .then(() => {
+                        log.info('NEW_CUSTOMER_CARD_CHARGE_SUCCESS');
+                        return res
+                          .status(200)
+                          .json({message: 'NEW_CUSTOMER_CARD_CHARGE_SUCCESS'});
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER'});
+              });
           }
         }
-      }).catch((err) => {
-    winston.info('DATABASE_ERROR');
-    return res
-      .status(400)
-      .json({error: 'DATABASE_ERROR'});
-  })
+      })
+    .catch((err) => {
+      log.error(err, 'DATABASE_ERROR');
+      return res
+        .status(400)
+        .json({error: 'DATABASE_ERROR'});
+    })
 }

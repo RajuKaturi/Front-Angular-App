@@ -10,13 +10,19 @@ const express = require('express');
 const favicon = require('serve-favicon');
 const helmet = require('helmet');
 const http = require('http');
-const mongo = require('./access/mongo');
+const log = require('./access/log');
 const logger = require('morgan');
+const mongo = require('./access/mongo');
 const path = require('path');
 const request = require('request');
 const routes = require('./api');
 
-new (function () {
+new Main();
+
+/**
+ * @constructor
+ */
+function Main() {
   app.use(cors());
   app.use(helmet());
 
@@ -55,7 +61,7 @@ new (function () {
 
   // error handler
   app.use((err, req, res, next) => {
-    console.log(err);
+    log.error(err);
 
     if (process.env.NODE_ENV === 'develop' || process.env.NODE_ENV === 'local') {
       res.status(err.status || 500).json({
@@ -67,7 +73,7 @@ new (function () {
     }
   });
 
-  console.log('starting mongodb');
+  log.info('starting mongodb');
   mongo
     .open()
     .then(() => {
@@ -77,17 +83,20 @@ new (function () {
       this.server.on('listening', onListening.bind(this));
     })
     .catch((err) => {
-      console.log('Unable to start server due to MonoDb initialization error'.red);
-      console.error(err);
+      log.error(err, 'Unable to start server due to MonoDb initialization error'.red);
     });
-})();
+}
+
+Main.prototype.onError = onError;
+Main.prototype.normalizePort = normalizePort;
+Main.prototype.onListening = onListening;
 
 //////////
 /**
  * Normalize a port into a number, string, or false.
  */
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  let port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe
@@ -110,18 +119,18 @@ function onError(error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
+  let bind = typeof port === 'string'
     ? 'Pipe ' + port
     : 'Port ' + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(`${bind} requires elevated privileges`.red);
+      log.error(new Error(`${bind} requires elevated privileges`.red));
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(`${bind} is already in use`.red);
+      log.error(new Error(`${bind} is already in use`.red));
       process.exit(1);
       break;
     default:
@@ -133,13 +142,13 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 function onListening() {
-  var addr = this.server.address();
-  var bind = typeof addr === 'string'
+  let addr = this.server.address();
+  let bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  console.log('IF Gathering Server');
-  console.log('Brought to you by Olive Technology, Inc.'.blue);
-  console.log('http://www.OliveTech.com'.blue);
-  console.log(`...server started on ${bind} with NODE_ENV: ${config.NODE_ENV}`.green);
-  debug('Listening on ' + bind);
+  log.info('IF Gathering Server');
+  log.info('Brought to you by Olive Technology, Inc.');
+  log.info('http://www.OliveTech.com');
+  log.info(`...server started on ${bind} with NODE_ENV: ${config.NODE_ENV}`);
+  log.info(`Listening on ${bind}`);
 }
