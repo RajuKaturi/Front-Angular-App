@@ -147,7 +147,6 @@ function postAch(req, res) {
                       });
                   })
                   .catch((err) => {
-                    console.log(err)
                     if (err.statusCode === 400) {
                       //Ach chargePayment
                       stripeAchPayment
@@ -371,7 +370,6 @@ function postCreditCard(req, res) {
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
-                            console.log('This is after create customer')
                             log.info('EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS');
                             return res
                               .status(200)
