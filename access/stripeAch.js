@@ -46,7 +46,6 @@ function createAchSubscription(customerId, paymentData) {
       .create({
         customer: customerId,
         plan: paymentData.data.id,
-        receipt_email: paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((subscriptions) => {
@@ -124,31 +123,6 @@ function createMetaData(paymentData) {
     phoneNumber: paymentData.phoneNumber
   };
   return metadata;
-}
-
-function retrieveAndUpdateCustomer(customerId) {
-  return new Promise((resolve, reject) => {
-    stripe
-      .customers
-      .retrieve(customerId, {})
-      .then((customer) => {
-
-        return resolve(customer);
-      })
-      .catch(reject);
-  });
-}
-
-function retrieveAndUpdateCustomer(customerId) {
-  return new Promise((resolve, reject) => {
-    stripe
-      .customers
-      .retrieve(customerId, {})
-      .then((customer) => {
-        return resolve(customer);
-      })
-      .catch(reject);
-  });
 }
 
 function retrieveAndUpdateCustomer(customerId) {
