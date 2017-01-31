@@ -1,20 +1,17 @@
 {
   "mongodb": {
-    "url": "",
-    "db": "",
-    "username": "",
-    "password": "",
+    "url": "iad2-c4-1.mongo.objectrocket.com:52208,iad2-c4-0.mongo.objectrocket.com:52208,iad2-c4-2.mongo.objectrocket.com:52208",
+    "options": "?replicaSet=83a526439437471bb7c7bcfec2f0a9a0",
+    "db": "ifg_dev",
+    "username": "OliveSliderDev123",
+    "password": "OliveRockerDev123",
     "collections": {
       "user": {
-        "name": "",
+        "name": "ifg_leads",
         "options": null
       },
-      "creditCard": {
-        "name": "",
-        "options": null
-      },
-      "ach": {
-        "name": "",
+      "donations": {
+        "name": "ifg_donations",
         "options": null
       }
     }
@@ -23,5 +20,40 @@
     "API_KEY": "",
     "transactionURL": "",
     "subscriptionURL": ""
+  },
+  "stripe": {
+    "stripeKey": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
+    "currency": "usd",
+    "interval": "day"
+  },
+  "logging": {
+    "transports": [
+      {
+        "type": "File",
+        "options": {
+          "name": "diagnostics",
+          "filename": "./if-gathering.diagnostics.log",
+          "level": "info",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "File",
+        "options": {
+          "name": "errors",
+          "filename": "./if-gathering.errors.log",
+          "level": "warn",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "Console",
+        "options": {
+          "colorize": true,
+          "level": "info",
+          "label": "IF-SERVER"
+        }
+      }
+    ]
   }
 }

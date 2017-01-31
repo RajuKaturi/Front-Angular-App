@@ -40,10 +40,9 @@ function open() {
       if (!config.mongodb.username || !config.mongodb.password) {
         url = `mongodb://${config.mongodb.url}/${config.mongodb.db}`
       } else {
-        url = `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.url}/${config.mongodb.db}`;
+        url = `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.url}/${config.mongodb.db}${config.mongodb.options}`;
       }
     }
-
     MongoClient
       .connect(url)
       .then((db) => {

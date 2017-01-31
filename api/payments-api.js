@@ -1,357 +1,475 @@
-"use strict"
+'use strict';
 
-const Ach = require('../models/ach');
-const base64 = require('base-64');
-const config = require('../access/config');
-const CreditCard = require('../models/credit-card');
-const encodedKey = base64.encode(config.recurly.API_KEY);
+const Donations = require('../models/donations');
 const express = require('express');
-const router = express.Router();
+const log = require('../access/log');
 const request = require('request');
+const router = express.Router();
+const StripeAch = require('../models/stripe-ach');
+const StripeCard = require('../models/stripe-card');
 
-
-// API for recurly ACH payment
+// API for  ACH payment
 router.post('/ach', postAch);
-
-// APi for recurly credit card payment
+// APi for  credit card payment
 router.post('/creditcard', postCreditCard);
 
 module.exports = router;
 
-//////////
-function postAch(req, res) {
+// req means request we are reciving from the front end.
+// res means responce we are sending to the front end as a responce for received request.
+// 200 code is for sucess- As the payment gateway & MongoDb is giving sucuess responce as 'String' .
+// 400 code is for failure- As the payment gateway & MongoDb is giving failure responce as 'String'.
 
+function postAch(req, res) {
+  let customerId;
+  let paymentData = req.body;
+  let paymentType = 'Bank';
+  let stripeStatus;
+  let stripeAchPayment = new StripeAch();
+
+  //Empty req.
   if (Object.keys(req.body).length === 0) {
-    return res.status(422).json({message: 'INVALID BODY'});
+    log.info(`INVALID_BODY: ${JSON.parse(req.body)}`);
+    return res
+      .status(400)
+      .json({message: 'INVALID_BODY'});
   }
 
-  let paymentDataACH = req.body;
-  if (paymentDataACH.monthlyGiving) {
-    let body = getMonthlyGivingBody();
-    let url = config.recurly.subscriptionURL;
-    let headers = {
-      'Accept': 'application/xml',
-      'Authorization': 'Basic ' + encodedKey
-    };
-    request
-      .post({
-          url: url,
-          body: body,
-          headers: headers
-        },
-        function (recurlyErr, response, recurlyResponseBody) {
-          if (recurlyErr) {
-            console.error(recurlyErr);
-            return res
-              .send(500)
-              .json({error: 'RECURLY_MONTHLY_GIVING_ERROR'});
-
-          } else {
-            new Ach(recurlyResponseBody)
-              .save()
-              .then(() => {
-                return (response.statusCode === 201)
-                  ? res.json({message: 'success'})
-                  : res.json({
-                    status_code: response.statusCode,
-                    body: response.body
-                  });
-              })
-              .catch((err) => {
-                console.log(err);
-                res.status(500).json({error: 'ERROR_SAVING_TRANSACTION'});
-              });
-          }
-        });
-
-  } else {
-
-    let AccountUrlACH = "https://kids-discover-test.recurly.com/v2/accounts/" + paymentDataACH.emailId;
-
-    let body = getOneTimeGivingBody();
-    let url = config.recurly.transactionURL;
-    let headers = {
-      'Accept': 'application/xml',
-      'Authorization': 'Basic ' + encodedKey
-    };
-    request.post({
-        url: url,
-        body: body,
-        headers: headers
-      },
-      function (recurlyErr, response, recurlyResponseBody) {
-        if (recurlyErr) {
-          console.error(recurlyErr);
-          return res
-            .send(500)
-            .json({error: 'RECURLY_ONE_TIME_GIVING_ERROR'});
+  //Check the customer in mongodb
+  Donations
+    .getRecordByEmail(paymentData.email)
+    .then((data) => {
+      if (data.length === 0) {
+        stripeStatus = false;
+      } else {
+        stripeStatus = true;
+        if (data[0].customerId !== '') {
+          customerId = data[0].customerId;
         } else {
-          new Ach(recurlyResponseBody)
-            .save()
-            .then(() => {
-              return (response.statusCode === 201)
-                ? res.json({message: 'success'})
-                : res.json({
-                  status_code: response.statusCode,
-                  body: response.body
+          log.warn('ERROR_WHILE_GETTING_DATA');
+
+          return res
+            .status(400)
+            .json({error: 'ERROR_WHILE_GETTING_DATA'});
+        }
+      }
+
+      //If customer exist
+      if (stripeStatus) {
+        //Ach recurringPayment
+        if (paymentData.status) {
+          stripeAchPayment
+            .createPlan(paymentData)
+            .then((plan) => {
+              stripeAchPayment
+                .createAchCustomer(paymentData)
+                .then((customer) => {
+                  stripeAchPayment
+                    .verifyCustomer(customer)
+                    .then((bankAccount) => {
+                      stripeAchPayment
+                        .createAchSubscription(bankAccount.customer, paymentData)
+                        .then((subscription) => {
+                          new Donations(subscription, paymentType, paymentData)
+                            .save()
+                            .then(() => {
+                              log.info('NEW_CUSTOMER_ACH_RECURRING_SUCCESS');
+                              return res
+                                .status(200)
+                                .json({message: 'NEW_CUSTOMER_ACH_RECURRING_SUCCESS'});
+                            })
+                            .catch((err) => {
+                              log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SAVING_DATA');
+                              return res
+                                .status(400)
+                                .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SAVING_DATA'});
+                            });
+                        })
+                        .catch((err) => {
+                          log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION');
+                          return res
+                            .status(400)
+                            .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
+                        });
+                    })
+                    .catch((err) => {
+                      log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
+                      return res
+                        .status(400)
+                        .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
+                    });
+                })
+                .catch((err) => {
+                  log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER');
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER'});
                 });
             })
             .catch((err) => {
-              console.log(err);
-              res.status(500).json({error: 'ERROR_SAVING_TRANSACTION'});
+              log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_PLAN');
+              return res
+                .status(400)
+                .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_PLAN'});
+            });
+        } else {
+          //Ach chargePayment
+          stripeAchPayment
+            .createAchCustomer(paymentData)
+            .then((customer) => {
+              stripeAchPayment
+                .verifyCustomer(customer)
+                .then((bankAccount) => {
+                  stripeAchPayment
+                    .createAchCharge(bankAccount.customer, paymentData)
+                    .then((charge) => {
+                      new Donations(charge, paymentType, paymentData)
+                        .save()
+                        .then(() => {
+                          log.info('EXISTING_CUSTOMER_ACH_CHARGE_SUCCESS');
+                          return res
+                            .status(200)
+                            .json({message: 'EXISTING_CUSTOMER_ACH_CHARGE_SUCCESS'});
+                        })
+                        .catch((err) => {
+                          log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_SAVING_DATA');
+                          return res
+                            .status(400)
+                            .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_SAVING_DATA'});
+                        });
+                    })
+                    .catch((err) => {
+                      log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CHARGE');
+                      return res
+                        .status(400)
+                        .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
+                    });
+                })
+                .catch((err) => {
+                  log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                });
+            })
+            .catch((err) => {
+              log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
+              return res
+                .status(400)
+                .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER'});
             });
         }
-      });
-  }
-
-  function getMonthlyGivingBody() {
-    return ` 
-      <subscription href="https://kids-discover-test.recurly.com/v2/subscriptions" type="bank_account">
-        <plan_code>ifgmonthlysb</plan_code>
-        <unit_amount_in_cents type="integer">${paymentDataACH.amount}</unit_amount_in_cents>
-        <currency>USD</currency>
-        <account>
-          <account_code>${paymentDataACH.emailId}</account_code>
-          <first_name>${paymentDataACH.firstName}</first_name>
-          <last_name>${paymentDataACH.lastName}</last_name>
-          <email>${paymentDataACH.emailId}</email>
-          <company_name>ifgathering</company_name>
-          <address>
-              <address1>${paymentDataACH.addressOne}</address1>
-              <address2 nil='nil'/>
-              <city>${paymentDataACH.city}</city>
-              <state>${paymentDataACH.StateCode}</state>
-              <zip>${paymentDataACH.zipCode}</zip>
-              <country>paymentData.countryList}</country>
-              <phone nil='nil'/>
-          </address>
-          <billing_info type="credit_card">
-              <address1>${paymentDataACH.addressOne}</address1>
-              <address2 nil='nil'/>
-              <city>${paymentDataACH.city}</city>
-              <state>${paymentDataACH.StateCode}</state>
-              <zip>${paymentDataACH.zipCode}</zip>
-              <country>${paymentDataACH.countryList}</country>
-              <phone nil='nil'/><vat_number nil='nil'/>
-              <name_on_account>${paymentDataACH.accountName}</name_on_account>
-              <account_type>${paymentDataACH.accountType}</account_type>
-              <account_number>${paymentDataACH.accountNumber}</account_number>
-              <company>OLIVE</company>
-              <routing_number type='integer'>${paymentDataACH.routingNumber}</routing_number>
-          </billing_info>
-        </account>
-      </subscription>
-    `;
-  }
-
-  function getOneTimeGivingBody() {
-    return ` 
-        <transaction href="https://kids-discover-test.recurly.com/v2/transactions" type="bank_account">
-            <account href="${AccountUrlACH}"/>
-            <amount_in_cents type="integer">${paymentDataACH.amount}</amount_in_cents>          
-            <currency>USD</currency>
-            <payment_method>ACH</payment_method>
-            <account>
-                <account_code>${paymentDataACH.emailId}</account_code>
-                <first_name>${paymentDataACH.firstName}</first_name>
-                <last_name>${paymentDataACH.lastName}</last_name>
-                <email>${paymentDataACH.emailId}</email>
-                <company_name>IFG</company_name>
-                <address>
-                  <address1>${paymentDataACH.addressOne}</address1>
-                  <address2 nil="nil"/>
-                  <city>${paymentDataACH.city}</city>
-                  <state>${paymentDataACH.StateCode}</state>
-                  <zip>${paymentDataACH.zipCode}</zip>
-                  <country>${paymentDataACH.countryList}</country>
-                  <phone nil="nil"/>
-                </address>
-                <billing_info type="bank_account">
-                    <address1>${paymentDataACH.addressOne}</address1>
-                    <address2 nil="nil"/>
-                    <city>${paymentDataACH.city}</city>
-                    <state>${paymentDataACH.StateCode}</state>
-                    <zip>${paymentDataACH.zipCode}</zip>
-                    <country>${paymentDataACH.countryList}</country>
-                    <phone nil="nil"/>
-                    <vat_number nil="nil"/>
-                    <name_on_account>${paymentDataACH.accountName}</name_on_account>
-                    <account_type>${paymentDataACH.accountType}</account_type>
-                    <account_number>${paymentDataACH.accountNumber}</account_number>
-                    <company>OLIVE</company>
-                    <routing_number type="integer"${paymentDataACH.routingNumber}</routing_number>
-                </billing_info>
-            </account>
-        </transaction>
-      `;
-  }
+      } else {
+        //New customer recurringPayment
+        if (paymentData.status) {
+          stripeAchPayment
+            .createPlan(paymentData)
+            .then((plan) => {
+              stripeAchPayment
+                .createAchCustomer(paymentData)
+                .then((customer) => {
+                  stripeAchPayment
+                    .verifyCustomer(customer)
+                    .then((bankAccount) => {
+                      stripeAchPayment
+                        .createAchSubscription(bankAccount.customer, paymentData)
+                        .then((subscription) => {
+                          new Donations(subscription, paymentType, paymentData)
+                            .save()
+                            .then(() => {
+                              log.info('NEW_CUSTOMER_ACH_RECURRING_SUCCESS');
+                              return res
+                                .status(200)
+                                .json({message: 'NEW_CUSTOMER_ACH_RECURRING_SUCCESS'});
+                            })
+                            .catch((err) => {
+                              log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SAVING_DATA');
+                              return res
+                                .status(400)
+                                .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SAVING_DATA'});
+                            });
+                        })
+                        .catch((err) => {
+                          log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION');
+                          return res
+                            .status(400)
+                            .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
+                        });
+                    })
+                    .catch((err) => {
+                      log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
+                      return res
+                        .status(400)
+                        .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
+                    });
+                })
+                .catch((err) => {
+                  log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER');
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER'});
+                });
+            })
+            .catch((err) => {
+              log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_PLAN');
+              return res
+                .status(400)
+                .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_PLAN'});
+            });
+        } else {
+          //Ach chargePayment
+          stripeAchPayment
+            .createAchCustomer(paymentData)
+            .then((customer) => {
+              stripeAchPayment.verifyCustomer(customer)
+                .then((bankAccount) => {
+                  stripeAchPayment
+                    .createAchCharge(bankAccount.customer, paymentData)
+                    .then((charge) => {
+                      new Donations(charge, paymentType, paymentData)
+                        .save()
+                        .then(() => {
+                          log.info('NEW_CUSTOMER_ACH_CHARGE_SUCCESS');
+                          return res
+                            .status(200)
+                            .json({message: 'NEW_CUSTOMER_ACH_CHARGE_SUCCESS'});
+                        })
+                        .catch((err) => {
+                          log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_SAVING_DATA');
+                          return res
+                            .status(400)
+                            .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_SAVING_DATA'});
+                        });
+                    })
+                    .catch((err) => {
+                      log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE');
+                      return res
+                        .status(400)
+                        .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
+                    });
+                })
+                .catch((err) => {
+                  log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
+                  return res
+                    .status(400)
+                    .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                });
+            })
+            .catch((err) => {
+              log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
+              return res
+                .status(400)
+                .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER'});
+            });
+        }
+      }
+    })
+    .catch((err) => {
+      log.error(err, 'DATABASE_ERROR');
+      return res
+        .status(500)
+        .json({error: 'DATABASE_ERROR'});
+    })
 }
 
 function postCreditCard(req, res) {
-
-  if (Object.keys(req.body).length === 0) {
-    return res
-      .status(422)
-      .json({message: 'INVALID BODY'});
-  }
-
+  let customerId;
   let paymentData = req.body;
-  if (paymentData.monthlyGiving) {
-    let url = config.recurly.subscriptionURL;
-    let body = getMonthlyGivingBody();
-    let headers = {
-      'Accept': 'application/xml',
-      'Authorization': 'Basic ' + encodedKey
-    };
+  let paymentType = 'Card';
+  let stripeStatus;
+  let stripeCardPayment = new StripeCard();
 
-    request
-      .post({
-          url: url,
-          body: body,
-          headers: headers
-        },
-        function (recurlyErr, response, recurlyResponseBody) {
-          if (recurlyErr) {
-            console.error(recurlyErr); // ideally this should actually be logging using winston or something
-            return res
-              .send(500)
-              .json({error: 'RECURLY_MONTHLY_GIVING_ERROR'});
+  //Empty req.
+  if (Object.keys(req.body).length === 0) {
+    log.info('INVALID_BODY');
+    return res
+      .status(400)
+      .json({message: 'INVALID_BODY'});
+  }
 
+  //Check the customer in MONGOdb
+  Donations
+    .getRecordByEmail(paymentData.email)
+    .then(
+      (data) => {
+        if (data.length === 0) {
+          stripeStatus = false;
+        } else {
+          stripeStatus = true;
+          if (data[0].customerId !== '') {
+            customerId = data[0].customerId;
           } else {
-            new CreditCard(recurlyResponseBody)
-              .save()
-              .then(() => {
-                return (response.statusCode === 201)
-                  ? res.json({message: 'success'})
-                  : res.json({status_code: response.statusCode});
+            log.info('ERROR_WHILE_GETTING_DATA');
+            return res
+              .status(400)
+              .json({error: 'ERROR_WHILE_GETTING_DATA'});
+          }
+        }
+
+        //If customer exist recurringPayment
+        if (stripeStatus) {
+          if (paymentData.status) {
+            stripeCardPayment
+              .createCardCustomer(paymentData)
+              .then((customer) => {
+                stripeCardPayment.createPlan(paymentData)
+                  .then((plan) => {
+                    stripeCardPayment
+                      .createCardSubscription(customer.id, paymentData)
+                      .then((subscription) => {
+                        new Donations(subscription, paymentType, paymentData)
+                          .save()
+                          .then(() => {
+                            log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
+                            return res
+                              .status(200)
+                              .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
+                          });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
+                  });
               })
               .catch((err) => {
-                console.log(err);
-                res.status(500).json({error: 'ERROR_SAVING_TRANSACTION'});
+                log.error(err, 'ERROR_WHILE_CREATING_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
               });
-          }
-        });
-
-  } else {
-
-    let body = getOneTimeGivingBody();
-    let url = config.recurly.transactionURL;
-    let headers = {
-      'Accept': 'application/xml',
-      'Authorization': 'Basic ' + encodedKey
-    };
-
-    request
-      .post({
-          url: url,
-          body: body,
-          headers: headers
-        },
-        function (recurlyErr, response, recurlyResponseBody) {
-          if (recurlyErr) {
-            console.error(recurlyErr);
-            return res
-              .send(500)
-              .json({error: 'RECURLY_ONE_TIME_GIVING_ERROR'});
 
           } else {
-            new CreditCard(recurlyResponseBody)
-              .save()
-              .then(() => {
-                return (response.statusCode === 201)
-                  ? res.json({message: 'success'})
-                  : res.json({status_code: response.statusCode});
+            //Card charge
+            stripeCardPayment
+              .retrieveAndUpdateCustomer(customerId, paymentData)
+              .then((retrieveAndUpdateCustomer) => {
+                new Donations(retrieveAndUpdateCustomer, paymentType, paymentData)
+                  .save()
+                  .then(() => {
+                    log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
+                    return res
+                      .status(200)
+                      .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+                  })
               })
               .catch((err) => {
-                console.log(err);
-                res.status(500).json({error: 'ERROR_SAVING_TRANSACTION'});
+                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER'});
               });
           }
-        });
-  }
-
-  /////
-  function getMonthlyGivingBody() {
-    return `
-        <subscription href="https://kids-discover-test.recurly.com/v2/subscriptions" type="credit_card">
-          <plan_code>ifgmonthlysb</plan_code>
-          <unit_amount_in_cents type="integer">${paymentData.amount}</unit_amount_in_cents>
-          <currency>USD</currency>
-          <account>
-            <account_code>${paymentData.emailId}</account_code>
-            <first_name>${paymentData.firstName}</first_name>
-            <last_name>${paymentData.lastName}</last_name>
-            <email>${paymentData.emailId}</email>
-            <company_name>ifgathering</company_name>
-            <address>
-              <address1> ${paymentData.addressOne}</address1>
-              <address2 nil="nil"/>
-              <city> ${paymentData.city}</city>
-              <state>${paymentData.StateCode}</state>
-              <zip>${paymentData.zipCode}</zip>
-              <country> ${paymentData.countryList}</country>
-              <phone nil="nil"/>
-            </address>
-            <billing_info type="credit_card">
-              <first_name>${paymentData.firstName}</first_name>
-              <last_name>${paymentData.lastName}</last_name>
-              <address1>${paymentData.addressOne}</address1>
-              <address2 nil="nil"/>
-              <city>${paymentData.city}</city>
-              <state>${paymentData.StateCode}</state>
-              <zip>${paymentData.zipCode}</zip>
-              <country>${paymentData.countryList}</country>
-              <phone nil="nil"/>
-              <vat_number nil="nil"/>
-              <number>${paymentData.CCNumber}</number>
-              <year type="integer">${paymentData.CCYear}</year>
-              <month type="integer"> ${paymentData.CCMonth}</month>
-              <verification_value> ${paymentData.CVV}</verification_value>
-            </billing_info>
-          </account>
-        </subscription>`;
-  }
-
-  function getOneTimeGivingBody() {
-    return `
-        <transaction href="https://kids-discover-test.recurly.com/v2/transactions">
-          <account href="https://kids-discover-test.recurly.com/v2/accounts/${paymentData.emailId}/>
-          <amount_in_cents type='integer'>${paymentData.amount}</amount_in_cents>
-          <currency>USD</currency>
-          <payment_method>credit_card</payment_method>
-          <account>
-            <account_code>${paymentData.emailId}</account_code>
-            <first_name>${paymentData.firstName}</first_name>
-            <last_name>${paymentData.lastName}</last_name>
-            <email>${paymentData.emailId}</email>
-            <company_name>ifgathering</company_name>
-            <address>
-              <address1>${paymentData.addressOne}</address1>
-              <address2 nil='nil'/>
-              <city>${paymentData.city}</city>
-              <state>${paymentData.StateCode}</state>
-              <zip>${paymentData.zipCode}</zip>
-              <country>${paymentData.countryList}</country>
-              <phone nil='nil'/>
-            </address>
-            <billing_info type='credit_card'>
-              <first_name>${paymentData.firstName}</first_name>
-              <last_name>${paymentData.lastName}</last_name>
-              <address1>${paymentData.addressOne}</address1>
-              <address2 nil='nil'/>
-              <city>${paymentData.city}</city>
-              <state>${paymentData.StateCode}</state>
-              <zip>${paymentData.zipCode}</zip>
-              <country>${paymentData.countryList}</country>
-              <phone nil='nil'/>
-              <vat_number nil='nil'/>
-              <year type='integer'>${paymentData.CCYear}</year>
-              <month type='integer'>${paymentData.CCMonth}</month>
-              <number>${paymentData.CCNumber}</number>
-            </billing_info>
-          </account>
-        </transaction>`;
-  }
+        } else {
+          //New customer recurringPayment
+          if (paymentData.status) {
+            stripeCardPayment
+              .createPlan(paymentData)
+              .then((plan) => {
+                stripeCardPayment
+                  .createCardCustomer(paymentData)
+                  .then((customer) => {
+                    stripeCardPayment
+                      .createCardSubscription(customer.id, paymentData)
+                      .then((subscription) => {
+                        new Donations(subscription, paymentType, paymentData)
+                          .save()
+                          .then(() => {
+                            log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
+                            return res
+                              .status(200)
+                              .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
+                          })
+                          .catch((err) => {
+                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
+                            return res
+                              .status(400)
+                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
+                          });
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_PAYMENT_CUSTOMER');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_CUSTOMER'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
+              });
+          } else {
+            //Card chargePayment
+            stripeCardPayment
+              .createCardCustomer(paymentData)
+              .then((customer) => {
+                stripeCardPayment
+                  .createCardCharge(customer.id, paymentData)
+                  .then((charge) => {
+                    new Donations(charge, paymentType, paymentData)
+                      .save()
+                      .then(() => {
+                        log.info('NEW_CUSTOMER_CARD_CHARGE_SUCCESS');
+                        return res
+                          .status(200)
+                          .json({message: 'NEW_CUSTOMER_CARD_CHARGE_SUCCESS'});
+                      })
+                      .catch((err) => {
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+                        return res
+                          .status(400)
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+                      });
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE'});
+                  });
+              })
+              .catch((err) => {
+                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER');
+                return res
+                  .status(400)
+                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER'});
+              });
+          }
+        }
+      })
+    .catch((err) => {
+      log.error(err, 'DATABASE_ERROR');
+      return res
+        .status(500)
+        .json({error: 'DATABASE_ERROR'});
+    })
 }
-
-
