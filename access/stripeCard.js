@@ -23,7 +23,9 @@ StripeCradAccessLayer.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCus
 //createCardCustomer
 function createCardCustomer(paymentData) {
   return new Promise((resolve, reject) => {
-    stripe.customers.create({
+    stripe
+      .customers
+      .create({
       email: paymentData.email,
       source: paymentData.data.id
     }).then((customer) => {
@@ -34,11 +36,13 @@ function createCardCustomer(paymentData) {
 
 function createCardCharge(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-    stripe.charges.create({
+    stripe
+      .charges
+      .create({
       amount: paymentData.amount * 100,
       currency: currency,
       customer: customerId,
-      receipt_email : paymentData.email,
+      receipt_email: paymentData.email,
       metadata: createMetaData(paymentData)
     }).then((customer) => {
       return resolve(customer);
@@ -53,7 +57,7 @@ function createCardSubscription(customerId, paymentData) {
       .create({
         customer: customerId,
         plan: paymentData.data.id,
-        receipt_email : paymentData.email,
+        receipt_email: paymentData.email,
         metadata: createMetaData(paymentData)
       }).then((subscription) => {
       return resolve(subscription);
@@ -96,22 +100,24 @@ function createMetaData(paymentData) {
 
 function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-        stripe
-          .customers
-          .createSource(customerId, {
-            source: paymentData.data.id
-          }).then((newCustomerToken) => {
-          stripe.charges.create({
-            amount: paymentData.amount * 100,
-            currency: currency,
-            customer: customerId,
-            receipt_email : paymentData.email,
-            source: newCustomerToken.id,
-            metadata: createMetaData(paymentData)
-          }).then((customer) => {
-            return resolve(customer);
-          }).catch(reject);
-          })
-          .catch(reject);
+    stripe
+      .customers
+      .createSource(customerId, {
+        source: paymentData.data.id
+      }).then((newCustomerToken) => {
+      stripe
+        .charges
+        .create({
+        amount: paymentData.amount * 100,
+        currency: currency,
+        customer: customerId,
+        receipt_email: paymentData.email,
+        source: newCustomerToken.id,
+        metadata: createMetaData(paymentData)
+      }).then((customer) => {
+        return resolve(customer);
+      }).catch(reject);
+    })
+      .catch(reject);
   });
 }

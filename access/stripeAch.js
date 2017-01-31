@@ -46,7 +46,7 @@ function createAchSubscription(customerId, paymentData) {
       .create({
         customer: customerId,
         plan: paymentData.data.id,
-        receipt_email : paymentData.email,
+        receipt_email: paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((subscriptions) => {
@@ -81,7 +81,7 @@ function createAchCharge(customerId, paymentData) {
         amount: paymentData.amount * 100,
         currency: currency,
         customer: customerId,
-        receipt_email : paymentData.email,
+        receipt_email: paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((charge) => {
@@ -136,7 +136,6 @@ function retrieveAndUpdateCustomer(customerId) {
         return resolve(customer);
       })
       .catch(reject);
-
   });
 }
 
@@ -146,11 +145,9 @@ function retrieveAndUpdateCustomer(customerId) {
       .customers
       .retrieve(customerId, {})
       .then((customer) => {
-
         return resolve(customer);
       })
       .catch(reject);
-
   });
 }
 
@@ -160,11 +157,9 @@ function retrieveAndUpdateCustomer(customerId) {
       .customers
       .retrieve(customerId, {})
       .then((customer) => {
-
         return resolve(customer);
       })
       .catch(reject);
-
   });
 }
 
@@ -176,11 +171,9 @@ function createSource(customerId, paymentData) {
         source: paymentData.data.id
       })
       .then((customer) => {
-
         return resolve(customer);
       })
       .catch(reject);
-
   });
 }
 
@@ -202,7 +195,7 @@ function verifyCustomerAndCharge(customer, paymentData, sourceId) {
             currency: currency,
             customer: customer.id,
             source: sourceId,
-            receipt_email : paymentData.email,
+            receipt_email: paymentData.email,
             metadata: createMetaData(paymentData)
           })
           .then((charge) => {

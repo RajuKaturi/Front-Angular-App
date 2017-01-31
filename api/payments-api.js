@@ -30,7 +30,6 @@ function postAch(req, res) {
   //Empty req.
   if (Object.keys(req.body).length === 0) {
     log.info(`INVALID_BODY: ${JSON.parse(req.body)}`);
-
     return res
       .status(400)
       .json({message: 'INVALID_BODY'});
