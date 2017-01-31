@@ -117,7 +117,7 @@ function postAch(req, res) {
           } else {
             //Ach chargePayment
             stripeAchPayment
-              .retrieveAndUpdateCustomer(customerId, paymentData)
+              .createAchCustomer(paymentData)
               .then((retrieveAndUpdateCustomer) => {
                 stripeAchPayment
                   .verifyCustomer(retrieveAndUpdateCustomer)
