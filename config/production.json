@@ -22,9 +22,9 @@
     "subscriptionURL": ""
   },
   "stripe": {
-    "stripeKey": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
+    "stripeKey": "sk_live_l2KS3QMFgGvIOkZu8ya3TJUA",
     "currency": "usd",
-    "interval": "day"
+    "interval": "monthly"
   },
   "logging": {
     "transports": [
