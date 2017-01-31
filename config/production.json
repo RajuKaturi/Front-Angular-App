@@ -2,9 +2,9 @@
   "mongodb": {
     "url": "iad2-c4-1.mongo.objectrocket.com:52208,iad2-c4-0.mongo.objectrocket.com:52208,iad2-c4-2.mongo.objectrocket.com:52208",
     "options": "?replicaSet=83a526439437471bb7c7bcfec2f0a9a0",
-    "db": "ifg_dev",
-    "username": "OliveSliderDev123",
-    "password": "OliveRockerDev123",
+    "db": "ifg_production",
+    "username": "ProductionUserDB",
+    "password": "Production!1234",
     "collections": {
       "user": {
         "name": "ifg_leads",
