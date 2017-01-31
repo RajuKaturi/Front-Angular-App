@@ -46,6 +46,7 @@ function createAchSubscription(customerId, paymentData) {
       .create({
         customer: customerId,
         plan: paymentData.data.id,
+        receipt_email : paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((subscriptions) => {
@@ -80,6 +81,7 @@ function createAchCharge(customerId, paymentData) {
         amount: paymentData.amount * 100,
         currency: currency,
         customer: customerId,
+        receipt_email : paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((charge) => {
@@ -200,6 +202,7 @@ function verifyCustomerAndCharge(customer, paymentData, sourceId) {
             currency: currency,
             customer: customer.id,
             source: sourceId,
+            receipt_email : paymentData.email,
             metadata: createMetaData(paymentData)
           })
           .then((charge) => {

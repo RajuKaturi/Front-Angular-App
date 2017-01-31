@@ -38,6 +38,7 @@ function createCardCharge(customerId, paymentData) {
       amount: paymentData.amount * 100,
       currency: currency,
       customer: customerId,
+      receipt_email : paymentData.email,
       metadata: createMetaData(paymentData)
     }).then((customer) => {
       return resolve(customer);
@@ -52,6 +53,7 @@ function createCardSubscription(customerId, paymentData) {
       .create({
         customer: customerId,
         plan: paymentData.data.id,
+        receipt_email : paymentData.email,
         metadata: createMetaData(paymentData)
       }).then((subscription) => {
       return resolve(subscription);
@@ -103,6 +105,7 @@ function retrieveAndUpdateCustomer(customerId, paymentData) {
             amount: paymentData.amount * 100,
             currency: currency,
             customer: customerId,
+            receipt_email : paymentData.email,
             source: newCustomerToken.id,
             metadata: createMetaData(paymentData)
           }).then((customer) => {

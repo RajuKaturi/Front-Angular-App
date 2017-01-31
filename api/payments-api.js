@@ -118,9 +118,9 @@ function postAch(req, res) {
             //Ach chargePayment
             stripeAchPayment
               .createAchCustomer(paymentData)
-              .then((retrieveAndUpdateCustomer) => {
+              .then((customer) => {
                 stripeAchPayment
-                  .verifyCustomer(retrieveAndUpdateCustomer)
+                  .verifyCustomer(customer)
                   .then((bankAccount) => {
                     stripeAchPayment
                       .createAchCharge(bankAccount.customer, paymentData)
@@ -155,10 +155,10 @@ function postAch(req, res) {
                   });
               })
               .catch((err) => {
-                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
+                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
                 return res
                   .status(400)
-                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_RETRIEVE_UPDATE_CUSTOMER'});
+                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER'});
               });
           }
         } else {
@@ -313,46 +313,46 @@ function postCreditCard(req, res) {
           if (paymentData.status) {
             stripeCardPayment
               .createCardCustomer(paymentData)
-              .then((retrieveAndUpdateCustomer) => {
+              .then((customer) => {
                 stripeCardPayment.createPlan(paymentData)
                   .then((plan) => {
                     stripeCardPayment
-                      .createCardSubscription(retrieveAndUpdateCustomer.id, paymentData)
+                      .createCardSubscription(customer.id, paymentData)
                       .then((subscription) => {
                         new donations(subscription, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
                           .save()
                           .then(() => {
-                            log.info('EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS');
+                            log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
                             return res
                               .status(200)
-                              .json({message: 'EXISTING_CUSTOMER_CARD_RECURRING_SUCCESS'});
+                              .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
                           })
                           .catch((err) => {
-                            log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SAVING_DATA');
+                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
                             return res
                               .status(400)
-                              .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
+                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
                           });
                       })
                       .catch((err) => {
-                        log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
+                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
                         return res
                           .status(400)
-                          .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
+                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
                       });
                   })
                   .catch((err) => {
-                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
+                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
                     return res
                       .status(400)
-                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
+                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
                   });
               })
               .catch((err) => {
-                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_PAYMENT_UPDATE_CUSTOMER');
+                log.error(err, 'ERROR_WHILE_CREATING_CUSTOMER');
                 return res
                   .status(400)
-                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_RECURRING_RETRIEVE_UPDATE_CUSTOMER'});
+                  .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
               });
 
           } else {
@@ -360,20 +360,20 @@ function postCreditCard(req, res) {
             stripeCardPayment
               .retrieveAndUpdateCustomer(customerId, paymentData)
               .then((retrieveAndUpdateCustomer) => {
-                    new donations(retrieveAndUpdateCustomer, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
-                      .save()
-                      .then(() => {
-                        log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
-                        return res
-                          .status(200)
-                          .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
-                      })
-                      .catch((err) => {
-                        log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
-                        return res
-                          .status(400)
-                          .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
-                      })
+                new donations(retrieveAndUpdateCustomer, paymentType, paymentData.donorFirstName, paymentData.donorLastName)
+                  .save()
+                  .then(() => {
+                    log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
+                    return res
+                      .status(200)
+                      .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
+                  })
+                  .catch((err) => {
+                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+                    return res
+                      .status(400)
+                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+                  })
               })
               .catch((err) => {
                 log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
