@@ -42,7 +42,7 @@ function postLead(req, res) {
             log.error(err);
 
             res.status(500).json({message: 'DB_ERROR ON UPDATE'});
-          })
+          });
       } else {
         user
           .save()
@@ -54,13 +54,13 @@ function postLead(req, res) {
           .catch((err) => {
             log.error(err);
 
-            res.status(500).json({message: 'DB_ERROR ON SAVE'});
+            res.status(500).json({message: 'DB_ERROR_ON_SAVE'});
           });
       }
     })
     .catch((err) => {
       log.error(err);
-      
+
       res.status(500).json({message: err});
-    })
+    });
 }

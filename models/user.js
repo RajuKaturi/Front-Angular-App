@@ -42,13 +42,12 @@ function isEmailExists() {
 function update(_id) {
   return new Promise((resolve, reject) => {
     new UserDb()
-      .update(_id,this)
+      .update(_id, this)
       .then((data) => {
         return resolve(data);
       })
       .catch((error) => {
         return reject(error);
-      })
-
+      });
   });
 }

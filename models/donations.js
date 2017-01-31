@@ -1,17 +1,17 @@
 'use strict';
 
-const donationsDb = require('../access/donationsDb');
+const DonationsDb = require('../access/donationsDb');
 const objectID = require('mongodb').ObjectID;
 
 module.exports = Donations;
 
-function Donations(init, paymentType) {
+function Donations(init, paymentType, paymentData) {
   this._id = (init._id) ? new objectID(init._id) : null;
   this.pushToActOn = Boolean(init.pushToActOn || false);
   this.pushContactToSalesForce = Boolean(init.pushContactToSalesForce || false);
   this.pushDonationToSalesForce = Boolean(init.pushDonationToSalesForce || false);
-  this.firstName = String(init.metadata.firstName || '');
-  this.lastName = String(init.metadata.lastName || '');
+  this.firstName = String(init.metadata.firstName || paymentData.data.firstName || '');
+  this.lastName = String(init.metadata.lastName || paymentData.data.lastName || '');
   this.customerId = String(init.customer || '');
   this.emailId = String(init.metadata.email || '');
   this.paymentType = paymentType;
@@ -23,7 +23,7 @@ Donations.getRecordByEmail = getRecordByEmail;
 
 function save() {
   return new Promise((resolve, reject) => {
-    new donationsDb()
+    new DonationsDb()
       .save(this)
       .then(resolve)
       .catch(reject);
@@ -32,11 +32,9 @@ function save() {
 
 function getRecordByEmail(emailId) {
   return new Promise((resolve, reject) => {
-    new donationsDb()
+    new DonationsDb()
       .getRecordByEmail(emailId)
-      .then((data) => {
-        return resolve(data);
-      })
+      .then(resolve)
       .catch(reject);
   });
 }
