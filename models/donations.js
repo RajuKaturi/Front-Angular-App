@@ -8,6 +8,7 @@ module.exports = Donations;
 function Donations(init, paymentType, paymentData) {
   this._id = (init._id) ? new objectID(init._id) : null;
   this.pushToActOn = Boolean(init.pushToActOn || false);
+  this.pushToSendGrid = Boolean(init.pushToSendGrid || false);
   this.pushContactToSalesForce = Boolean(init.pushContactToSalesForce || false);
   this.pushDonationToSalesForce = Boolean(init.pushDonationToSalesForce || false);
   this.firstName = String(init.metadata.firstName || paymentData.data.firstName || '');
