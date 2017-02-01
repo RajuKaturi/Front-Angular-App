@@ -13,6 +13,8 @@ StripeAch.prototype.createAchCharge = createAchCharge;
 StripeAch.prototype.createPlan = createPlan;
 StripeAch.prototype.createAchSubscription = createAchSubscription;
 StripeAch.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCustomer;
+StripeAch.prototype.createSource = createSource;
+StripeAch.prototype.verifyCustomerAndCharge = verifyCustomerAndCharge;
 
 function createAchCustomer(paymentData) {
   return new Promise((resolve, reject) => {
@@ -59,10 +61,27 @@ function createPlan(paymentData) {
   });
 }
 
-function retrieveAndUpdateCustomer(customerId, paymentData) {
+function retrieveAndUpdateCustomer(customerId) {
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
-      .retrieveAndUpdateCustomer(customerId, paymentData)
+      .retrieveAndUpdateCustomer(customerId)
+      .then(resolve)
+      .catch(reject);
+  });
+}
+
+function createSource(customerId,paymentData) {
+  return new Promise((resolve, reject) => {
+    new StripeAchAccessLayer()
+      .createSource(customerId, paymentData)
+      .then(resolve)
+      .catch(reject);
+  });
+}
+function verifyCustomerAndCharge(customer,paymentData , sourceId) {
+  return new Promise((resolve, reject) => {
+    new StripeAchAccessLayer()
+      .verifyCustomerAndCharge(customer, paymentData , sourceId)
       .then(resolve)
       .catch(reject);
   });

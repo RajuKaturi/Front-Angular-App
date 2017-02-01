@@ -1,6 +1,6 @@
 'use strict';
 
-const StripeCradAccessLayer = require('../access/stripeCard');
+const StripeCardAccessLayer = require('../access/stripeCard');
 
 module.exports = StripeCard;
 
@@ -15,7 +15,7 @@ StripeCard.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCustomer;
 
 function createCardCustomer(paymentData) {
   return new Promise((resolve, reject) => {
-    new StripeCradAccessLayer()
+    new StripeCardAccessLayer()
       .createCardCustomer(paymentData)
       .then(resolve)
       .catch(reject);
@@ -24,8 +24,8 @@ function createCardCustomer(paymentData) {
 
 function createCardCharge(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-    new StripeCradAccessLayer()
-      .createCardCharge(customerId, paymentData)
+    new StripeCardAccessLayer()
+      .createCardCharge(customerId, paymentData )
       .then(resolve)
       .catch(reject);
   });
@@ -33,7 +33,7 @@ function createCardCharge(customerId, paymentData) {
 
 function createCardSubscription(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-    new StripeCradAccessLayer()
+    new StripeCardAccessLayer()
       .createCardSubscription(customerId, paymentData)
       .then(resolve)
       .catch(reject);
@@ -42,7 +42,7 @@ function createCardSubscription(customerId, paymentData) {
 
 function createPlan(paymentData) {
   return new Promise((resolve, reject) => {
-    new StripeCradAccessLayer()
+    new StripeCardAccessLayer()
       .createPlan(paymentData)
       .then(resolve)
       .catch(reject);
@@ -51,7 +51,7 @@ function createPlan(paymentData) {
 
 function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-    new StripeCradAccessLayer()
+    new StripeCardAccessLayer()
       .retrieveAndUpdateCustomer(customerId, paymentData)
       .then(resolve)
       .catch(reject);

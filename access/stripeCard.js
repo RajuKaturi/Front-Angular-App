@@ -23,25 +23,34 @@ StripeCradAccessLayer.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCus
 //createCardCustomer
 function createCardCustomer(paymentData) {
   return new Promise((resolve, reject) => {
-    stripe.customers.create({
-      email: paymentData.email,
-      source: paymentData.data.id
-    }).then((customer) => {
-      return resolve(customer);
-    }).catch(reject);
+    stripe
+      .customers
+      .create({
+        email: paymentData.email,
+        source: paymentData.data.id
+      })
+      .then((customer) => {
+        return resolve(customer);
+      })
+      .catch(reject);
   });
 }
 
 function createCardCharge(customerId, paymentData) {
   return new Promise((resolve, reject) => {
-    stripe.charges.create({
-      amount: paymentData.amount * 100,
-      currency: currency,
-      customer: customerId,
-      metadata: createMetaData(paymentData)
-    }).then((customer) => {
-      return resolve(customer);
-    }).catch(reject);
+    stripe
+      .charges
+      .create({
+        amount: paymentData.amount * 100,
+        currency: currency,
+        customer: customerId,
+        receipt_email: paymentData.email,
+        metadata: createMetaData(paymentData)
+      })
+      .then((customer) => {
+        return resolve(customer);
+      })
+      .catch(reject);
   });
 }
 
@@ -53,9 +62,11 @@ function createCardSubscription(customerId, paymentData) {
         customer: customerId,
         plan: paymentData.data.id,
         metadata: createMetaData(paymentData)
-      }).then((subscription) => {
-      return resolve(subscription);
-    }).catch(reject);
+      })
+      .then((subscription) => {
+        return resolve(subscription);
+      })
+      .catch(reject);
   });
 }
 
@@ -69,9 +80,11 @@ function createPlan(paymentData) {
         interval: interval,
         currency: currency,
         amount: paymentData.amount * 100,
-      }).then((plan) => {
-      return resolve(plan);
-    }).catch(reject);
+      })
+      .then((plan) => {
+        return resolve(plan);
+      })
+      .catch(reject);
   });
 }
 
@@ -96,12 +109,19 @@ function retrieveAndUpdateCustomer(customerId, paymentData) {
   return new Promise((resolve, reject) => {
     stripe
       .customers
-      .retrieve(customerId, {})
-      .then((customer) => {
+      .createSource(customerId, {
+        source: paymentData.data.id
+      })
+      .then((newCustomerToken) => {
         stripe
-          .customers
-          .update(customer.id, {
-            source: paymentData.data.id
+          .charges
+          .create({
+            amount: paymentData.amount * 100,
+            currency: currency,
+            customer: customerId,
+            receipt_email: paymentData.email,
+            source: newCustomerToken.id,
+            metadata: createMetaData(paymentData)
           })
           .then((customer) => {
             return resolve(customer);

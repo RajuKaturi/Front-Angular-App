@@ -20,6 +20,8 @@ StripeAchAccessLayer.prototype.createMetaData = createMetaData;
 StripeAchAccessLayer.prototype.createPlan = createPlan;
 StripeAchAccessLayer.prototype.createAchSubscription = createAchSubscription;
 StripeAchAccessLayer.prototype.retrieveAndUpdateCustomer = retrieveAndUpdateCustomer;
+StripeAchAccessLayer.prototype.createSource = createSource;
+StripeAchAccessLayer.prototype.verifyCustomerAndCharge = verifyCustomerAndCharge;
 
 //createAchCustomer
 function createAchCustomer(paymentData) {
@@ -78,6 +80,7 @@ function createAchCharge(customerId, paymentData) {
         amount: paymentData.amount * 100,
         currency: currency,
         customer: customerId,
+        receipt_email: paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((charge) => {
@@ -122,19 +125,55 @@ function createMetaData(paymentData) {
   return metadata;
 }
 
-function retrieveAndUpdateCustomer(customerId, paymentData) {
+function retrieveAndUpdateCustomer(customerId) {
   return new Promise((resolve, reject) => {
     stripe
       .customers
       .retrieve(customerId, {})
       .then((customer) => {
+        return resolve(customer);
+      })
+      .catch(reject);
+  });
+}
+
+function createSource(customerId, paymentData) {
+  return new Promise((resolve, reject) => {
+    stripe
+      .customers
+      .createSource(customerId, {
+        source: paymentData.data.id
+      })
+      .then((customer) => {
+        return resolve(customer);
+      })
+      .catch(reject);
+  });
+}
+
+function verifyCustomerAndCharge(customer, paymentData, sourceId) {
+  return new Promise((resolve, reject) => {
+    stripe
+      .customers
+      .verifySource(
+        customer.id,
+        sourceId,
+        {
+          amounts: [32, 45]
+        })
+      .then((bankAccount) => {
         stripe
-          .customers
-          .update(customer.id, {
-            source: paymentData.data.id
+          .charges
+          .create({
+            amount: paymentData.amount * 100,
+            currency: currency,
+            customer: customer.id,
+            source: sourceId,
+            receipt_email: paymentData.email,
+            metadata: createMetaData(paymentData)
           })
-          .then((customer) => {
-            return resolve(customer);
+          .then((charge) => {
+            return resolve(charge);
           })
           .catch(reject);
       })
