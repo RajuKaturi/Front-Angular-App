@@ -13,6 +13,7 @@ function User(init) {
   this.isLocalLeader = Boolean(init.isLocalLeader || false);
   this.pushToActOn = Boolean(init.pushToActOn || false);
   this.pushToSalesForce = Boolean(init.pushToSalesForce || false);
+  this.pushToSendGrid = Boolean(init.pushToSendGrid || false);
 }
 
 User.prototype.save = save;
