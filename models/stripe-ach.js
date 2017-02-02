@@ -34,10 +34,10 @@ function createAchSubscription(customerId, paymentData) {
   });
 }
 
-function verifyCustomer(customer) {
+function verifyCustomer(customer , paymentData) {
   return new Promise((resolve, reject) => {
     new StripeAchAccessLayer()
-      .verifyCustomer(customer)
+      .verifyCustomer(customer , paymentData)
       .then(resolve)
       .catch(reject);
   });

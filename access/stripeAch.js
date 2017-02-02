@@ -55,7 +55,7 @@ function createAchSubscription(customerId, paymentData) {
   });
 }
 
-function verifyCustomer(customer) {
+function verifyCustomer(customer , paymentData) {
   return new Promise((resolve, reject) => {
     stripe
       .customers
@@ -63,7 +63,7 @@ function verifyCustomer(customer) {
         customer.id,
         customer.default_source,
         {
-          amounts: [32, 45]
+          amounts: [paymentData.amount * 100, paymentData.amount * 100]
         })
       .then((bankAccount) => {
         return resolve(bankAccount);
@@ -159,7 +159,7 @@ function verifyCustomerAndCharge(customer, paymentData, sourceId) {
         customer.id,
         sourceId,
         {
-          amounts: [32, 45]
+          amounts: [paymentData.amount * 100, paymentData.amount * 100]
         })
       .then((bankAccount) => {
         stripe

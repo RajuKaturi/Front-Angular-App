@@ -65,7 +65,7 @@ function postAch(req, res) {
                 .createAchCustomer(paymentData)
                 .then((customer) => {
                   stripeAchPayment
-                    .verifyCustomer(customer)
+                    .verifyCustomer(customer, paymentData)
                     .then((bankAccount) => {
                       stripeAchPayment
                         .createAchSubscription(bankAccount.customer, paymentData)
@@ -118,7 +118,7 @@ function postAch(req, res) {
             .createAchCustomer(paymentData)
             .then((customer) => {
               stripeAchPayment
-                .verifyCustomer(customer)
+                .verifyCustomer(customer, paymentData)
                 .then((bankAccount) => {
                   stripeAchPayment
                     .createAchCharge(bankAccount.customer, paymentData)
@@ -169,7 +169,7 @@ function postAch(req, res) {
                 .createAchCustomer(paymentData)
                 .then((customer) => {
                   stripeAchPayment
-                    .verifyCustomer(customer)
+                    .verifyCustomer(customer, paymentData)
                     .then((bankAccount) => {
                       stripeAchPayment
                         .createAchSubscription(bankAccount.customer, paymentData)
@@ -221,7 +221,7 @@ function postAch(req, res) {
           stripeAchPayment
             .createAchCustomer(paymentData)
             .then((customer) => {
-              stripeAchPayment.verifyCustomer(customer)
+              stripeAchPayment.verifyCustomer(customer, paymentData)
                 .then((bankAccount) => {
                   stripeAchPayment
                     .createAchCharge(bankAccount.customer, paymentData)
