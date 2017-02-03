@@ -14,7 +14,7 @@ function StripeAchAccessLayer() {
 }
 
 StripeAchAccessLayer.prototype.createAchCustomer = createAchCustomer;
-StripeAchAccessLayer.prototype.verifyCustomer = verifyCustomer;
+//StripeAchAccessLayer.prototype.verifyCustomer = verifyCustomer;
 StripeAchAccessLayer.prototype.createAchCharge = createAchCharge;
 StripeAchAccessLayer.prototype.createMetaData = createMetaData;
 StripeAchAccessLayer.prototype.createPlan = createPlan;
