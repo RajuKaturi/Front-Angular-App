@@ -64,9 +64,9 @@ function postAch(req, res) {
               stripeAchPayment
                 .createAchCustomer(paymentData)
                 .then((customer) => {
-                  stripeAchPayment
-                    .verifyCustomer(customer, paymentData)
-                    .then((bankAccount) => {
+                  // stripeAchPayment
+                  //   .verifyCustomer(customer, paymentData)
+                  //   .then((bankAccount) => {
                       stripeAchPayment
                         .createAchSubscription(bankAccount.customer, paymentData)
                         .then((subscription) => {
@@ -91,13 +91,13 @@ function postAch(req, res) {
                             .status(400)
                             .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
                         });
-                    })
-                    .catch((err) => {
-                      log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
-                    });
+                    // })
+                    // .catch((err) => {
+                    //   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
+                    //   return res
+                    //     .status(400)
+                    //     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
+                    // });
                 })
                 .catch((err) => {
                   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER');
@@ -117,9 +117,9 @@ function postAch(req, res) {
           stripeAchPayment
             .createAchCustomer(paymentData)
             .then((customer) => {
-              stripeAchPayment
-                .verifyCustomer(customer, paymentData)
-                .then((bankAccount) => {
+              // stripeAchPayment
+              //   .verifyCustomer(customer, paymentData)
+              //   .then((bankAccount) => {
                   stripeAchPayment
                     .createAchCharge(bankAccount.customer, paymentData)
                     .then((charge) => {
@@ -144,13 +144,13 @@ function postAch(req, res) {
                         .status(400)
                         .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
                     });
-                })
-                .catch((err) => {
-                  log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
-                });
+                // })
+                // .catch((err) => {
+                //   log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
+                //   return res
+                //     .status(400)
+                //     .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                // });
             })
             .catch((err) => {
               log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
@@ -168,9 +168,9 @@ function postAch(req, res) {
               stripeAchPayment
                 .createAchCustomer(paymentData)
                 .then((customer) => {
-                  stripeAchPayment
-                    .verifyCustomer(customer, paymentData)
-                    .then((bankAccount) => {
+                  // stripeAchPayment
+                  //   .verifyCustomer(customer, paymentData)
+                  //   .then((bankAccount) => {
                       stripeAchPayment
                         .createAchSubscription(bankAccount.customer, paymentData)
                         .then((subscription) => {
@@ -195,13 +195,13 @@ function postAch(req, res) {
                             .status(400)
                             .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
                         });
-                    })
-                    .catch((err) => {
-                      log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
-                      return res
-                        .status(400)
-                        .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
-                    });
+                    // })
+                    // .catch((err) => {
+                    //   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
+                    //   return res
+                    //     .status(400)
+                    //     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
+                    // });
                 })
                 .catch((err) => {
                   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER');
@@ -221,8 +221,8 @@ function postAch(req, res) {
           stripeAchPayment
             .createAchCustomer(paymentData)
             .then((customer) => {
-              stripeAchPayment.verifyCustomer(customer, paymentData)
-                .then((bankAccount) => {
+              // stripeAchPayment.verifyCustomer(customer, paymentData)
+              //   .then((bankAccount) => {
                   stripeAchPayment
                     .createAchCharge(bankAccount.customer, paymentData)
                     .then((charge) => {
@@ -247,13 +247,13 @@ function postAch(req, res) {
                         .status(400)
                         .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
                     });
-                })
-                .catch((err) => {
-                  log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
-                  return res
-                    .status(400)
-                    .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
-                });
+                // })
+                // .catch((err) => {
+                //   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
+                //   return res
+                //     .status(400)
+                //     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
+                // });
             })
             .catch((err) => {
               log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
