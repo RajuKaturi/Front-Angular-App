@@ -68,7 +68,7 @@ function postAch(req, res) {
                   //   .verifyCustomer(customer, paymentData)
                   //   .then((bankAccount) => {
                       stripeAchPayment
-                        .createAchSubscription(bankAccount.customer, paymentData)
+                        .createAchSubscription(customer.id, paymentData)
                         .then((subscription) => {
                           new Donations(subscription, paymentType, paymentData)
                             .save()
@@ -121,7 +121,7 @@ function postAch(req, res) {
               //   .verifyCustomer(customer, paymentData)
               //   .then((bankAccount) => {
                   stripeAchPayment
-                    .createAchCharge(bankAccount.customer, paymentData)
+                    .createAchCharge(customer.id, paymentData)
                     .then((charge) => {
                       new Donations(charge, paymentType, paymentData)
                         .save()
@@ -172,7 +172,7 @@ function postAch(req, res) {
                   //   .verifyCustomer(customer, paymentData)
                   //   .then((bankAccount) => {
                       stripeAchPayment
-                        .createAchSubscription(bankAccount.customer, paymentData)
+                        .createAchSubscription(customer.id, paymentData)
                         .then((subscription) => {
                           new Donations(subscription, paymentType, paymentData)
                             .save()
@@ -224,7 +224,7 @@ function postAch(req, res) {
               // stripeAchPayment.verifyCustomer(customer, paymentData)
               //   .then((bankAccount) => {
                   stripeAchPayment
-                    .createAchCharge(bankAccount.customer, paymentData)
+                    .createAchCharge(customer.id, paymentData)
                     .then((charge) => {
                       new Donations(charge, paymentType, paymentData)
                         .save()
@@ -473,3 +473,49 @@ function postCreditCard(req, res) {
         .json({error: 'DATABASE_ERROR'});
     })
 }
+
+//
+//
+// const config = require('../access/config');
+//
+// let stripe = require('stripe')(config.stripe.stripeKey);
+//
+//
+// router.post('/miss', miss);
+//
+//
+//
+//
+// function miss () {
+//   console.log('This is Mine........')
+//
+//   stripe
+//     .customers
+//     .retrieve('cus_A2opagZioEQBRc', {})
+//     .then((customer) => {
+//
+//
+//
+//           stripe
+//             .charges
+//             .create({
+//               amount: 100,
+//               currency: 'usd',
+//               customer: 'cus_A2opagZioEQBRc'
+//             })
+//             .then((charge) => {
+//             console.log('This is sucuess.....')
+//             })
+//             .catch(reject);
+//
+//
+//
+//     })
+//     .catch((err) => {
+//       console.log(err)
+//
+//     });
+//
+//
+// }
+//
