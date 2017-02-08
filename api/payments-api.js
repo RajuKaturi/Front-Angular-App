@@ -8,6 +8,14 @@ const router = express.Router();
 const StripeAch = require('../models/stripe-ach');
 const StripeCard = require('../models/stripe-card');
 
+//   .createTransport({
+//   service: 'Gmail',
+//   auth: {
+//     user: 'bodigevinay92@gmail.com', // Your email id
+//     pass: 'Vinay!369' // Your password
+//   }
+// });
+
 // API for  ACH payment
 router.post('/ach', postAch);
 // APi for  credit card payment
@@ -489,24 +497,40 @@ function postCreditCard(req, res) {
 // function miss () {
 //   console.log('This is Mine........')
 //
+//
+//
+//
+//
+//
+//
+//   // stripe
+//   //   .customers
+//   //   .retrieve('cus_A3VpKa1hgvaMuI', {})
+//   //   .then((customer) => {
+//
+//
 //   stripe
-//     .customers
-//     .retrieve('cus_A2opagZioEQBRc', {})
+//     .charges
+//     .list({
+//       customer:'cus_A4CaE1pwXMo11z'
+//     })
 //     .then((customer) => {
 //
+//     console.log(customer.data)
 //
 //
-//           stripe
-//             .charges
-//             .create({
-//               amount: 100,
-//               currency: 'usd',
-//               customer: 'cus_A2opagZioEQBRc'
-//             })
-//             .then((charge) => {
-//             console.log('This is sucuess.....')
-//             })
-//             .catch(reject);
+//           //
+//           // stripe
+//           //   .charges
+//           //   .create({
+//           //     amount: 100,
+//           //     currency: 'usd',
+//           //     customer: 'cus_A2opagZioEQBRc'
+//           //   })
+//           //   .then((charge) => {
+//           //   console.log('This is sucuess.....')
+//           //   })
+//           //   .catch(reject);
 //
 //
 //
@@ -518,4 +542,4 @@ function postCreditCard(req, res) {
 //
 //
 // }
-//
+
