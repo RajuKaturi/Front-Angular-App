@@ -46,7 +46,6 @@ function createAchSubscription(customerId, paymentData) {
       .create({
         customer: customerId,
         plan: paymentData.data.id,
-        receipt_email: paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((subscriptions) => {
@@ -56,7 +55,7 @@ function createAchSubscription(customerId, paymentData) {
   });
 }
 
-function verifyCustomer(customer) {
+function verifyCustomer(customer , paymentData) {
   return new Promise((resolve, reject) => {
     stripe
       .customers
@@ -64,7 +63,7 @@ function verifyCustomer(customer) {
         customer.id,
         customer.default_source,
         {
-          amounts: [32, 45]
+          amounts: [paymentData.amount * 100, paymentData.amount * 100]
         })
       .then((bankAccount) => {
         return resolve(bankAccount);
@@ -132,31 +131,6 @@ function retrieveAndUpdateCustomer(customerId) {
       .customers
       .retrieve(customerId, {})
       .then((customer) => {
-
-        return resolve(customer);
-      })
-      .catch(reject);
-  });
-}
-
-function retrieveAndUpdateCustomer(customerId) {
-  return new Promise((resolve, reject) => {
-    stripe
-      .customers
-      .retrieve(customerId, {})
-      .then((customer) => {
-        return resolve(customer);
-      })
-      .catch(reject);
-  });
-}
-
-function retrieveAndUpdateCustomer(customerId) {
-  return new Promise((resolve, reject) => {
-    stripe
-      .customers
-      .retrieve(customerId, {})
-      .then((customer) => {
         return resolve(customer);
       })
       .catch(reject);
@@ -185,7 +159,7 @@ function verifyCustomerAndCharge(customer, paymentData, sourceId) {
         customer.id,
         sourceId,
         {
-          amounts: [32, 45]
+          amounts: [paymentData.amount * 100, paymentData.amount * 100]
         })
       .then((bankAccount) => {
         stripe

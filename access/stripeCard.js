@@ -61,7 +61,6 @@ function createCardSubscription(customerId, paymentData) {
       .create({
         customer: customerId,
         plan: paymentData.data.id,
-        receipt_email: paymentData.email,
         metadata: createMetaData(paymentData)
       })
       .then((subscription) => {
