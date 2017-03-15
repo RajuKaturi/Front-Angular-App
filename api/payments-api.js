@@ -8,14 +8,6 @@ const router = express.Router();
 const StripeAch = require('../models/stripe-ach');
 const StripeCard = require('../models/stripe-card');
 
-//   .createTransport({
-//   service: 'Gmail',
-//   auth: {
-//     user: 'bodigevinay92@gmail.com', // Your email id
-//     pass: 'Vinay!369' // Your password
-//   }
-// });
-
 // API for  ACH payment
 router.post('/ach', postAch);
 // APi for  credit card payment
@@ -72,9 +64,6 @@ function postAch(req, res) {
               stripeAchPayment
                 .createAchCustomer(paymentData)
                 .then((customer) => {
-                  // stripeAchPayment
-                  //   .verifyCustomer(customer, paymentData)
-                  //   .then((bankAccount) => {
                       stripeAchPayment
                         .createAchSubscription(customer.id, paymentData)
                         .then((subscription) => {
@@ -99,13 +88,7 @@ function postAch(req, res) {
                             .status(400)
                             .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
                         });
-                    // })
-                    // .catch((err) => {
-                    //   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
-                    //   return res
-                    //     .status(400)
-                    //     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
-                    // });
+
                 })
                 .catch((err) => {
                   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER');
@@ -125,9 +108,6 @@ function postAch(req, res) {
           stripeAchPayment
             .createAchCustomer(paymentData)
             .then((customer) => {
-              // stripeAchPayment
-              //   .verifyCustomer(customer, paymentData)
-              //   .then((bankAccount) => {
                   stripeAchPayment
                     .createAchCharge(customer.id, paymentData)
                     .then((charge) => {
@@ -152,13 +132,6 @@ function postAch(req, res) {
                         .status(400)
                         .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
                     });
-                // })
-                // .catch((err) => {
-                //   log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
-                //   return res
-                //     .status(400)
-                //     .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
-                // });
             })
             .catch((err) => {
               log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
@@ -176,9 +149,6 @@ function postAch(req, res) {
               stripeAchPayment
                 .createAchCustomer(paymentData)
                 .then((customer) => {
-                  // stripeAchPayment
-                  //   .verifyCustomer(customer, paymentData)
-                  //   .then((bankAccount) => {
                       stripeAchPayment
                         .createAchSubscription(customer.id, paymentData)
                         .then((subscription) => {
@@ -203,13 +173,7 @@ function postAch(req, res) {
                             .status(400)
                             .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_SUBSCRIPTION'});
                         });
-                    // })
-                    // .catch((err) => {
-                    //   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER');
-                    //   return res
-                    //     .status(400)
-                    //     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_VERIFY_CUSTOMER'});
-                    // });
+
                 })
                 .catch((err) => {
                   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_RECURRING_CREATING_CUSTOMER');
@@ -229,8 +193,7 @@ function postAch(req, res) {
           stripeAchPayment
             .createAchCustomer(paymentData)
             .then((customer) => {
-              // stripeAchPayment.verifyCustomer(customer, paymentData)
-              //   .then((bankAccount) => {
+
                   stripeAchPayment
                     .createAchCharge(customer.id, paymentData)
                     .then((charge) => {
@@ -255,13 +218,7 @@ function postAch(req, res) {
                         .status(400)
                         .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CHARGE'});
                     });
-                // })
-                // .catch((err) => {
-                //   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER');
-                //   return res
-                //     .status(400)
-                //     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_VERIFY_CUSTOMER'});
-                // });
+
             })
             .catch((err) => {
               log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_ACH_CHARGE_CREATING_CUSTOMER');
@@ -481,65 +438,3 @@ function postCreditCard(req, res) {
         .json({error: 'DATABASE_ERROR'});
     })
 }
-
-//
-//
-// const config = require('../access/config');
-//
-// let stripe = require('stripe')(config.stripe.stripeKey);
-//
-//
-// router.post('/miss', miss);
-//
-//
-//
-//
-// function miss () {
-//   console.log('This is Mine........')
-//
-//
-//
-//
-//
-//
-//
-//   // stripe
-//   //   .customers
-//   //   .retrieve('cus_A3VpKa1hgvaMuI', {})
-//   //   .then((customer) => {
-//
-//
-//   stripe
-//     .charges
-//     .list({
-//       customer:'cus_A4CaE1pwXMo11z'
-//     })
-//     .then((customer) => {
-//
-//     console.log(customer.data)
-//
-//
-//           //
-//           // stripe
-//           //   .charges
-//           //   .create({
-//           //     amount: 100,
-//           //     currency: 'usd',
-//           //     customer: 'cus_A2opagZioEQBRc'
-//           //   })
-//           //   .then((charge) => {
-//           //   console.log('This is sucuess.....')
-//           //   })
-//           //   .catch(reject);
-//
-//
-//
-//     })
-//     .catch((err) => {
-//       console.log(err)
-//
-//     });
-//
-//
-// }
-
