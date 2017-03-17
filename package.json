@@ -1,0 +1,35 @@
+{
+  "name": "ifgather",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node .",
+    "start:local": "npm run docker:start && nodemon --exec 'NODE_ENV=local node .'",
+    "docker:start": "docker-compose up -d --remove-orphans",
+    "docker:stop": "docker-compose down"
+  },
+  "main": "app.js",
+  "dependencies": {
+    "base-64": "^0.1.0",
+    "body-parser": "~1.15.2",
+    "colors": "^1.1.2",
+    "cookie-parser": "~1.4.3",
+    "cors": "^2.8.1",
+    "debug": "~2.2.0",
+    "ejs": "^2.5.5",
+    "express": "~4.14.0",
+    "helmet": "^3.1.0",
+    "mongodb": "^2.2.16",
+    "morgan": "~1.7.0",
+    "request": "^2.79.0",
+    "serve-favicon": "~2.3.0",
+    "winston": "^2.3.0",
+    "stripe": "^4.14.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  },
+  "engines": {
+    "node": "5.12.0"
+  }
+}

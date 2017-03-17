@@ -1,0 +1,62 @@
+{
+  "mongodb": {
+    "url": "iad2-c4-1.mongo.objectrocket.com:52208,iad2-c4-0.mongo.objectrocket.com:52208,iad2-c4-2.mongo.objectrocket.com:52208",
+    "options": "?replicaSet=83a526439437471bb7c7bcfec2f0a9a0",
+    "db": "ifg_dev",
+    "username": "OliveSliderDev123",
+    "password": "OliveRockerDev123",
+    "collections": {
+      "user": {
+        "name": "ifg_leads",
+        "options": null
+      },
+      "donations": {
+        "name": "ifg_donations",
+        "options": null
+      }
+    }
+  },
+  "recurly": {
+    "API_KEY": "7a4a27967d674d6885923933bcef12fd",
+    "transactionURL": "https://kids-discover-test.recurly.com/v2/transactions",
+    "subscriptionURL": "https://kids-discover-test.recurly.com/v2/subscriptions"
+  },
+  "stripe": {
+    "stripeKey": "sk_test_J0awUPn92Yeo4OkqpTEaaEbE",
+    "currency": "usd",
+    "interval": "day"
+  },
+  "headers": {
+    "Access-Control-Allow-Origin": "*"
+  },
+  "logging": {
+    "transports": [
+      {
+        "type": "File",
+        "options": {
+          "name": "diagnostics",
+          "filename": "./if-gathering.diagnostics.log",
+          "level": "silly",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "File",
+        "options": {
+          "name": "errors",
+          "filename": "./if-gathering.errors.log",
+          "level": "warn",
+          "label": "IF-SERVER"
+        }
+      },
+      {
+        "type": "Console",
+        "options": {
+          "colorize": true,
+          "level": "silly",
+          "label": "IF-SERVER"
+        }
+      }
+    ]
+  }
+}
