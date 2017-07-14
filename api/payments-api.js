@@ -8,6 +8,8 @@ const router = express.Router();
 const StripeAch = require('../models/stripe-ach');
 const StripeCard = require('../models/stripe-card');
 
+
+
 // API for  ACH payment
 router.post('/ach', postAch);
 // APi for  credit card payment
@@ -238,203 +240,247 @@ function postAch(req, res) {
 }
 
 function postCreditCard(req, res) {
-  let customerId;
+  // let customerId;
+   let paymentData = req.body;
+  // let paymentType = 'Card';
+  // let stripeStatus;
+  // let stripeCardPayment = new StripeCard();
+
+  // //Empty req.
+  // if (Object.keys(req.body).length === 0) {
+  //   log.info('INVALID_BODY');
+  //   return res
+  //     .status(400)
+  //     .json({message: 'INVALID_BODY'});
+  // }
+
+  // //Check the customer in MONGOdb
+  // Donations
+  //   .getRecordByEmail(paymentData.email)
+  //   .then(
+  //     (data) => {
+  //       if (data.length === 0) {
+  //         stripeStatus = false;
+  //       } else {
+  //         stripeStatus = true;
+  //         if (data[0].customerId !== '') {
+  //           customerId = data[0].customerId;
+  //         } else {
+  //           log.info('ERROR_WHILE_GETTING_DATA');
+  //           return res
+  //             .status(400)
+  //             .json({error: 'ERROR_WHILE_GETTING_DATA'});
+  //         }
+  //       }
+
+  //       //If customer exist recurringPayment
+  //       if (stripeStatus) {
+  //         if (paymentData.status) {
+  //           stripeCardPayment
+  //             .createCardCustomer(paymentData)
+  //             .then((customer) => {
+  //               stripeCardPayment.createPlan(paymentData)
+  //                 .then((plan) => {
+  //                   stripeCardPayment
+  //                     .createCardSubscription(customer.id, paymentData)
+  //                     .then((subscription) => {
+  //                       new Donations(subscription, paymentType, paymentData)
+  //                         .save()
+  //                         .then(() => {
+  //                           log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
+  //                           return res
+  //                             .status(200)
+  //                             .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
+  //                         })
+  //                         .catch((err) => {
+  //                           log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
+  //                           return res
+  //                             .status(400)
+  //                             .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
+  //                         });
+  //                     })
+  //                     .catch((err) => {
+  //                       log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
+  //                       return res
+  //                         .status(400)
+  //                         .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
+  //                     });
+  //                 })
+  //                 .catch((err) => {
+  //                   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
+  //                   return res
+  //                     .status(400)
+  //                     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
+  //                 });
+  //             })
+  //             .catch((err) => {
+  //               log.error(err, 'ERROR_WHILE_CREATING_CUSTOMER');
+  //               return res
+  //                 .status(400)
+  //                 .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
+  //             });
+
+  //         } else {
+  //           //Card charge
+  //           stripeCardPayment
+  //             .retrieveAndUpdateCustomer(customerId, paymentData)
+  //             .then((retrieveAndUpdateCustomer) => {
+  //               new Donations(retrieveAndUpdateCustomer, paymentType, paymentData)
+  //                 .save()
+  //                 .then(() => {
+  //                   log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
+  //                   return res
+  //                     .status(200)
+  //                     .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
+  //                 })
+  //                 .catch((err) => {
+  //                   log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+  //                   return res
+  //                     .status(400)
+  //                     .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+  //                 })
+  //             })
+  //             .catch((err) => {
+  //               log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
+  //               return res
+  //                 .status(400)
+  //                 .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER'});
+  //             });
+  //         }
+  //       } else {
+  //         //New customer recurringPayment
+  //         if (paymentData.status) {
+  //           stripeCardPayment
+  //             .createPlan(paymentData)
+  //             .then((plan) => {
+  //               stripeCardPayment
+  //                 .createCardCustomer(paymentData)
+  //                 .then((customer) => {
+  //                   stripeCardPayment
+  //                     .createCardSubscription(customer.id, paymentData)
+  //                     .then((subscription) => {
+  //                       new Donations(subscription, paymentType, paymentData)
+  //                         .save()
+  //                         .then(() => {
+  //                           log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
+  //                           return res
+  //                             .status(200)
+  //                             .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
+  //                         })
+  //                         .catch((err) => {
+  //                           log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
+  //                           return res
+  //                             .status(400)
+  //                             .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
+  //                         });
+  //                     })
+  //                     .catch((err) => {
+  //                       log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
+  //                       return res
+  //                         .status(400)
+  //                         .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
+  //                     });
+  //                 })
+  //                 .catch((err) => {
+  //                   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_PAYMENT_CUSTOMER');
+  //                   return res
+  //                     .status(400)
+  //                     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_CUSTOMER'});
+  //                 });
+  //             })
+  //             .catch((err) => {
+  //               log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
+  //               return res
+  //                 .status(400)
+  //                 .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
+  //             });
+  //         } else {
+  //           //Card chargePayment
+  //           stripeCardPayment
+  //             .createCardCustomer(paymentData)
+  //             .then((customer) => {
+  //               stripeCardPayment
+  //                 .createCardCharge(customer.id, paymentData)
+  //                 .then((charge) => {
+  //                   new Donations(charge, paymentType, paymentData)
+  //                     .save()
+  //                     .then(() => {
+  //                       log.info('NEW_CUSTOMER_CARD_CHARGE_SUCCESS');
+  //                       return res
+  //                         .status(200)
+  //                         .json({message: 'NEW_CUSTOMER_CARD_CHARGE_SUCCESS'});
+  //                     })
+  //                     .catch((err) => {
+  //                       log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA');
+  //                       return res
+  //                         .status(400)
+  //                         .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
+  //                     });
+  //                 })
+  //                 .catch((err) => {
+  //                   log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE');
+  //                   return res
+  //                     .status(400)
+  //                     .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE'});
+  //                 });
+  //             })
+  //             .catch((err) => {
+  //               log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER');
+  //               return res
+  //                 .status(400)
+  //                 .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER'});
+  //             });
+  //         }
+  //       }
+  //     })
+  //   .catch((err) => {
+  //     log.error(err, 'DATABASE_ERROR');
+  //     return res
+  //       .status(500)
+  //       .json({error: 'DATABASE_ERROR'});
+  //   })
+
+  console.log('This is Payment from King.....');
+  console.log(paymentData);
+
+   return res
+        .status(200)
+  .json({message: 'API Hit...'});
+}
+
+
+let stripe = require('stripe')('sk_test_04VHeFr1kbRfJTKXt5EoZ7MI');
+// let currency = config.stripe.currency;
+
+
+router.post('/webHookFromStripe', webHookFromStripe);
+
+function webHookFromStripe(req , res) {
+  // body...
+console.log('This is King....')
   let paymentData = req.body;
-  let paymentType = 'Card';
-  let stripeStatus;
-  let stripeCardPayment = new StripeCard();
+  console.log(paymentData);
 
-  //Empty req.
-  if (Object.keys(req.body).length === 0) {
-    log.info('INVALID_BODY');
-    return res
-      .status(400)
-      .json({message: 'INVALID_BODY'});
-  }
+  var customer = createCardCustomer(paymentData);
+  console.log(customer);
 
-  //Check the customer in MONGOdb
-  Donations
-    .getRecordByEmail(paymentData.email)
-    .then(
-      (data) => {
-        if (data.length === 0) {
-          stripeStatus = false;
-        } else {
-          stripeStatus = true;
-          if (data[0].customerId !== '') {
-            customerId = data[0].customerId;
-          } else {
-            log.info('ERROR_WHILE_GETTING_DATA');
-            return res
-              .status(400)
-              .json({error: 'ERROR_WHILE_GETTING_DATA'});
-          }
-        }
+  return res
+        .status(200);
+}
 
-        //If customer exist recurringPayment
-        if (stripeStatus) {
-          if (paymentData.status) {
-            stripeCardPayment
-              .createCardCustomer(paymentData)
-              .then((customer) => {
-                stripeCardPayment.createPlan(paymentData)
-                  .then((plan) => {
-                    stripeCardPayment
-                      .createCardSubscription(customer.id, paymentData)
-                      .then((subscription) => {
-                        new Donations(subscription, paymentType, paymentData)
-                          .save()
-                          .then(() => {
-                            log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
-                            return res
-                              .status(200)
-                              .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
-                          })
-                          .catch((err) => {
-                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
-                            return res
-                              .status(400)
-                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
-                          });
-                      })
-                      .catch((err) => {
-                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
-                        return res
-                          .status(400)
-                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
-                      });
-                  })
-                  .catch((err) => {
-                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
-                    return res
-                      .status(400)
-                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
-                  });
-              })
-              .catch((err) => {
-                log.error(err, 'ERROR_WHILE_CREATING_CUSTOMER');
-                return res
-                  .status(400)
-                  .json({error: 'ERROR_WHILE_CREATING_CUSTOMER'});
-              });
-
-          } else {
-            //Card charge
-            stripeCardPayment
-              .retrieveAndUpdateCustomer(customerId, paymentData)
-              .then((retrieveAndUpdateCustomer) => {
-                new Donations(retrieveAndUpdateCustomer, paymentType, paymentData)
-                  .save()
-                  .then(() => {
-                    log.info('EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS');
-                    return res
-                      .status(200)
-                      .json({message: 'EXISTING_CUSTOMER_CARD_CHARGE_SUCCESS'});
-                  })
-                  .catch((err) => {
-                    log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA');
-                    return res
-                      .status(400)
-                      .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
-                  })
-              })
-              .catch((err) => {
-                log.error(err, 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER');
-                return res
-                  .status(400)
-                  .json({error: 'ERROR_WHILE_EXISTING_CUSTOMER_CARD_CHARGE_RETRIEVE_UPDATE_CUSTOMER'});
-              });
-          }
-        } else {
-          //New customer recurringPayment
-          if (paymentData.status) {
-            stripeCardPayment
-              .createPlan(paymentData)
-              .then((plan) => {
-                stripeCardPayment
-                  .createCardCustomer(paymentData)
-                  .then((customer) => {
-                    stripeCardPayment
-                      .createCardSubscription(customer.id, paymentData)
-                      .then((subscription) => {
-                        new Donations(subscription, paymentType, paymentData)
-                          .save()
-                          .then(() => {
-                            log.info('NEW_CUSTOMER_CARD_RECURRING_SUCCESS');
-                            return res
-                              .status(200)
-                              .json({message: 'NEW_CUSTOMER_CARD_RECURRING_SUCCESS'});
-                          })
-                          .catch((err) => {
-                            log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA');
-                            return res
-                              .status(400)
-                              .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SAVING_DATA'});
-                          });
-                      })
-                      .catch((err) => {
-                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION');
-                        return res
-                          .status(400)
-                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_SUBSCRIPTION'});
-                      });
-                  })
-                  .catch((err) => {
-                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_PAYMENT_CUSTOMER');
-                    return res
-                      .status(400)
-                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_CUSTOMER'});
-                  });
-              })
-              .catch((err) => {
-                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN');
-                return res
-                  .status(400)
-                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_RECURRING_CREATING_PLAN'});
-              });
-          } else {
-            //Card chargePayment
-            stripeCardPayment
-              .createCardCustomer(paymentData)
-              .then((customer) => {
-                stripeCardPayment
-                  .createCardCharge(customer.id, paymentData)
-                  .then((charge) => {
-                    new Donations(charge, paymentType, paymentData)
-                      .save()
-                      .then(() => {
-                        log.info('NEW_CUSTOMER_CARD_CHARGE_SUCCESS');
-                        return res
-                          .status(200)
-                          .json({message: 'NEW_CUSTOMER_CARD_CHARGE_SUCCESS'});
-                      })
-                      .catch((err) => {
-                        log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA');
-                        return res
-                          .status(400)
-                          .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_SAVING_DATA'});
-                      });
-                  })
-                  .catch((err) => {
-                    log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE');
-                    return res
-                      .status(400)
-                      .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CHARGE'});
-                  });
-              })
-              .catch((err) => {
-                log.error(err, 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER');
-                return res
-                  .status(400)
-                  .json({error: 'ERROR_WHILE_NEW_CUSTOMER_CARD_CHARGE_CREATING_CUSTOMER'});
-              });
-          }
-        }
-      })
-    .catch((err) => {
-      log.error(err, 'DATABASE_ERROR');
-      return res
-        .status(500)
-        .json({error: 'DATABASE_ERROR'});
-    })
+function createCardCustomer(paymentData) {
+  stripe.customers.create({
+  email: "Raju@example.com",
+  source: paymentData.data.id,
+  }).then(function(customer) {
+  // YOUR CODE: Save the customer ID and other info in a database for later.
+  return stripe.charges.create({
+    amount: 1000,
+    currency: "usd",
+    customer: customer.id,
+  });
+}).then(function(charge) {
+  // Use and save the charge info.
+  console.log(charge);
+});
 }
